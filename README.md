@@ -8,12 +8,12 @@ import (
   "net/http"
   "net/url"
 
-  whisk "github.ibm.com/Bluemix/go-whisk"
+  client "github.ibm.com/Bluemix/go-whisk"
 )
 
 func main() {
   httpClient := http.DefaultClient
-  whisk, err := whisk.New(httpClient, nil)
+  whisk, err := client.New(httpClient, nil)
   if err != nil {
     fmt.Println(err)
     os.Exit(-1)
