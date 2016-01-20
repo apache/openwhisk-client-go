@@ -8,17 +8,22 @@ import (
   "net/http"
   "net/url"
 
-  client "github.ibm.com/Bluemix/go-whisk"
+  "github.ibm.com/Bluemix/go-whisk/whisk"
 )
 
 func main() {
-  whisk, err := client.New(http.DefaultClient, nil)
+  client, err := whisk.New(http.DefaultClient, nil)
   if err != nil {
     fmt.Println(err)
     os.Exit(-1)
   }
 
-  actions, resp, err := whisk.Actions.Get("actionName")
+  options := &whisk.ActionListOptions{
+    Limit: 30,
+    Skip: 0,
+  }
+
+  actions, resp, err := client.Actions.List(options)
   if err != nil {
     fmt.Println(err)
     os.Exit(-1)
