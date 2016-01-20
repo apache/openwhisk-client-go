@@ -12,8 +12,7 @@ import (
 )
 
 func main() {
-  httpClient := http.DefaultClient
-  whisk, err := client.New(httpClient, nil)
+  whisk, err := client.New(http.DefaultClient, nil)
   if err != nil {
     fmt.Println(err)
     os.Exit(-1)
