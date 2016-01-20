@@ -38,7 +38,7 @@ type Config struct {
 	Verbose   bool
 }
 
-func New(httpClient *http.Client, config *Config) (*Client, error) {
+func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
 
 	if httpClient == nil {
 		httpClient = http.DefaultClient

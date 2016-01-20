@@ -1,8 +1,47 @@
-## Go Whisk Client
+# go-whisk
+
+`go-whisk` is a Go client library for accessing
 
 
+### Usage
 
-##### Simple
+```go
+import "github.ibm.com/Bluemix/go-whisk/whisk"
+```
+
+Construct a new whisk client, then use various services to access different parts of the whisk api.  For example to get the `hello` action:
+
+```go
+client, _ := whisk.NewClient(http.DefaultClient, nil)
+action, resp, err := client.Actions.List("hello")
+```
+
+Some API methods have optional parameters that can be passed. For example, to list the first 30 actions, after the 30th action:
+```go
+client, _ := whisk.NewClient(http.DefaultClient, nil)
+
+options := &whisk.ActionListOptions{
+  Limit: 30,
+  Skip: 30,
+}
+
+actions, resp, err := client.Actions.List(options)
+```
+
+Whisk can be configured by passing in a `*whisk.Config` object as the second argument to `whisk.New( ... )`.  For example:
+
+```go
+u, _ := url.Parse("https://whisk.stage1.ng.bluemix.net:443/api/v1/")
+config := &whisk.Config{
+  Namespace: "_",
+  AuthKey: "aaaaa-bbbbb-ccccc-ddddd-eeeee",
+  BaseURL: u
+}
+client, err := whisk.Newclient(http.DefaultClient, config)
+```
+
+
+### Example
 ```go
 import (
   "net/http"
@@ -12,7 +51,7 @@ import (
 )
 
 func main() {
-  client, err := whisk.New(http.DefaultClient, nil)
+  client, err := whisk.NewClient(http.DefaultClient, nil)
   if err != nil {
     fmt.Println(err)
     os.Exit(-1)
@@ -20,7 +59,7 @@ func main() {
 
   options := &whisk.ActionListOptions{
     Limit: 30,
-    Skip: 0,
+    Skip: 30,
   }
 
   actions, resp, err := client.Actions.List(options)
@@ -35,20 +74,4 @@ func main() {
 }
 
 
-```
-
-##### Configuration
-
-Whisk can be configured by passing in a `*whisk.Config` object as the second argument to `whisk.New( ... )`.  Its declaration is:
-
-```go
-package whisk
-
-type Config struct {
-	Namespace string // NOTE :: Default is "_"
-	AuthToken string
-	BaseURL   *url.URL // NOTE :: Default is "whisk.stage1.ng.bluemix.net"
-	Version   string
-	Verbose   bool
-}
 ```
