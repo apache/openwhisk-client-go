@@ -67,7 +67,7 @@ func (s *TriggerService) Insert(trigger *Trigger, overwrite bool) (*Trigger, *ht
 
 }
 
-func (s *TriggerService) Fetch(triggerName string) (*Trigger, *http.Response, error) {
+func (s *TriggerService) Get(triggerName string) (*Trigger, *http.Response, error) {
 	route := fmt.Sprintf("triggers/%s", triggerName)
 
 	req, err := s.client.NewRequest("GET", route, nil)

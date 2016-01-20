@@ -69,7 +69,7 @@ func (s *ActivationService) List(options *ActivationListOptions) ([]Activation, 
 
 }
 
-func (s *ActivationService) Fetch(activationID string) (*Activation, *http.Response, error) {
+func (s *ActivationService) Get(activationID string) (*Activation, *http.Response, error) {
 	route := fmt.Sprintf("activations/%s", activationID)
 
 	req, err := s.client.NewRequest("GET", route, nil)

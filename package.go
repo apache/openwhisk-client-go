@@ -55,7 +55,7 @@ func (s *PackageService) List(options *PackageListOptions) ([]Package, *http.Res
 
 }
 
-func (s *PackageService) Fetch(packageName string) (*Package, *http.Response, error) {
+func (s *PackageService) Get(packageName string) (*Package, *http.Response, error) {
 	route := fmt.Sprintf("packages/%s", packageName)
 
 	req, err := s.client.NewRequest("GET", route, nil)

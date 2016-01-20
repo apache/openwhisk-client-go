@@ -81,7 +81,7 @@ func (s *ActionService) Insert(action *Action, overwrite bool) (*Action, *http.R
 
 }
 
-func (s *ActionService) Fetch(actionName string) (*Action, *http.Response, error) {
+func (s *ActionService) Get(actionName string) (*Action, *http.Response, error) {
 	route := fmt.Sprintf("actions/%s", actionName)
 
 	req, err := s.client.NewRequest("GET", route, nil)

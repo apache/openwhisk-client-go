@@ -67,7 +67,7 @@ func (s *RuleService) Insert(rule *Rule, overwrite bool) (*Rule, *http.Response,
 
 }
 
-func (s *RuleService) Fetch(ruleName string) (*Rule, *http.Response, error) {
+func (s *RuleService) Get(ruleName string) (*Rule, *http.Response, error) {
 	route := fmt.Sprintf("rules/%s", ruleName)
 
 	req, err := s.client.NewRequest("GET", route, nil)
