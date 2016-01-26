@@ -9,8 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -77,11 +75,6 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
 ///////////////////////////////
 
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
-
-	printJSON(body)
-
-	spew.Dump(body)
-
 	urlStr = fmt.Sprintf("%s/%s", c.Config.Namespace, urlStr)
 
 	rel, err := url.Parse(urlStr)
@@ -126,6 +119,13 @@ func (c *Client) addAuthHeader(req *http.Request) {
 // interface, the raw response body will be written to v, without attempting to
 // first decode it.
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
+	// TODO :: clean up verbose scheme
+	if c.Verbose {
+		fmt.Printf("\n[%s]\t%s\n", req.Method, req.URL)
+		if req.Body != nil {
+			printJSON(req.Body)
+		}
+	}
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -135,6 +135,9 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 
 	err = CheckResponse(resp)
 	if err != nil {
+		if c.Verbose {
+			printJSON(err)
+		}
 		return resp, err
 	}
 
@@ -148,6 +151,12 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 			}
 		}
 	}
+
+	if c.Verbose {
+		fmt.Printf("\n[%d]\t%s\n", resp.StatusCode, resp.Status)
+		printJSON(v)
+	}
+
 	return resp, err
 }
 
