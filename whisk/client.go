@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://whisk.stage1.ng.bluemix.net:443/api/v1/"
+	defaultBaseURL = "https://whisk.stage1.ng.bluemix.net:443/api/"
 )
 
 type Client struct {
@@ -26,6 +26,7 @@ type Client struct {
 	Activations *ActivationService
 	Packages    *PackageService
 	Namespaces  *NamespaceService
+	Info        *InfoService
 }
 
 type Config struct {
@@ -54,6 +55,10 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
 		config.Namespace = "_"
 	}
 
+	if config.Version == "" {
+		config.Version = "v1"
+	}
+
 	c := &Client{
 		client: httpClient,
 		Config: config,
@@ -66,6 +71,7 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
 	c.Activations = &ActivationService{client: c}
 	c.Packages = &PackageService{client: c}
 	c.Namespaces = &NamespaceService{client: c}
+	c.Info = &InfoService{client: c}
 
 	return c, nil
 }
@@ -75,7 +81,8 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
 ///////////////////////////////
 
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
-	urlStr = fmt.Sprintf("%s/%s", c.Config.Namespace, urlStr)
+
+	urlStr = fmt.Sprintf("%s/namespaces/%s/%s", c.Config.Version, c.Config.Namespace, urlStr)
 
 	rel, err := url.Parse(urlStr)
 	if err != nil {
@@ -122,6 +129,10 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	// TODO :: clean up verbose scheme
 	if c.Verbose {
 		fmt.Printf("\n[%s]\t%s\n", req.Method, req.URL)
+		if len(req.Header) > 0 {
+			fmt.Println("Headers")
+			printJSON(req.Header)
+		}
 		if req.Body != nil {
 			printJSON(req.Body)
 		}
