@@ -51,11 +51,11 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
 		}
 	}
 
-	if config.Namespace == "" {
+	if len(config.Namespace) == 0 {
 		config.Namespace = "_"
 	}
 
-	if config.Version == "" {
+	if len(config.Version) == 0 {
 		config.Version = "v1"
 	}
 
