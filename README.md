@@ -1,12 +1,12 @@
 # go-whisk
 
-`go-whisk` is a Go client library for accessing
+`go-whisk` is a Go client library for accessing 
 
 
 ### Usage
 
 ```go
-import "github.ibm.com/Bluemix/go-whisk/whisk"
+import "github.ibm.com/BlueMix-Fabric/go-whisk/whisk"
 ```
 
 Construct a new whisk client, then use various services to access different parts of the whisk api.  For example to get the `hello` action:
@@ -47,7 +47,7 @@ import (
   "net/http"
   "net/url"
 
-  "github.ibm.com/Bluemix/go-whisk/whisk"
+  "github.ibm.com/BlueMix-Fabric/go-whisk/whisk"
 )
 
 func main() {

@@ -32,7 +32,7 @@ type Client struct {
 type Config struct {
 	Namespace string // NOTE :: Default is "_"
 	AuthToken string
-	BaseURL   *url.URL // NOTE :: Default is "whisk.stage1.ng.bluemix.net"
+	BaseURL   *url.URL // NOTE :: Default is "https://whisk.stage1.ng.bluemix.net:443/api/"
 	Version   string
 	Verbose   bool
 }
