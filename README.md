@@ -1,6 +1,6 @@
 # go-whisk
 
-`go-whisk` is a Go client library for accessing 
+`go-whisk` is a Go client library for accessing the IBM Whisk API.
 
 
 ### Usage
