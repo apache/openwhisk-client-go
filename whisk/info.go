@@ -1,6 +1,9 @@
 package whisk
 
-import "net/http"
+import (
+	"net/http"
+	"net/url"
+)
 
 type Info struct {
 	Whisk   string `json:"whisk,omitempty"`
@@ -13,9 +16,16 @@ type InfoService struct {
 }
 
 func (s *InfoService) Get() (*Info, *http.Response, error) {
-	// make a request to c.BaseURL / namespaces
+	// make a request to c.BaseURL / v1
 
-	req, err := http.NewRequest("GET", s.client.BaseURL.String(), nil)
+	ref, err := url.Parse(s.client.Config.Version)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	u := s.client.BaseURL.ResolveReference(ref)
+
+	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
