@@ -18,8 +18,8 @@ type Activation struct {
 	Subject      string `json:"subject,omitempty"`
 	ActivationID string `json:"activationId,omitempty"`
 	Cause        string `json:"cause,omitempty"`
-	Start        int    `json:"start,omitempty"`
-	End          int    `json:"end,omitempty"`
+	Start        int64  `json:"start,omitempty"`
+	End          int64  `json:"end,omitempty"`
 	Response     `json:"response,omitempty"`
 	Logs         []Log `json:"logs,omitempty"`
 }
@@ -36,8 +36,8 @@ type ActivationListOptions struct {
 	Name  string `url:"name,omitempty"`
 	Limit int    `url:"limit,omitempty"`
 	Skip  int    `url:"skip,omitempty"`
-	Since int    `url:"since,omitempty"`
-	Upto  int    `url:"upto,omitempty"`
+	Since int64  `url:"since,omitempty"`
+	Upto  int64  `url:"upto,omitempty"`
 	Docs  bool   `url:"docs,omitempty"`
 }
 

@@ -25,6 +25,12 @@ type Binding struct {
 	Name      string `json:"name"`
 }
 
+type BindingUpdates struct {
+	Added   []Binding `json:"added,omitempty"`
+	Updated []Binding `json:"added,omitempty"`
+	Deleted []Binding `json:"added,omitempty"`
+}
+
 type PackageListOptions struct {
 	Public bool `url:"public,omitempty"`
 	Limit  int  `url:"limit,omitempty"`
@@ -104,4 +110,21 @@ func (s *PackageService) Delete(packageName string) (*http.Response, error) {
 	}
 
 	return resp, nil
+}
+
+func (s *PackageService) Refresh() (*BindingUpdates, *http.Response, error) {
+	route := "packages/refresh"
+
+	req, err := s.client.NewRequest("POST", route, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	updates := &BindingUpdates{}
+	resp, err := s.client.Do(req, updates)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return updates, resp, nil
 }
