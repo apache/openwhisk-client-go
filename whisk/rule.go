@@ -18,7 +18,7 @@ type Rule struct {
 
 	Status  string `json:"status"`
 	Trigger string `json:"trigger"`
-	Action  string `json:"rule"`
+	Action  string `json:"action"`
 }
 
 type RuleListOptions struct {
