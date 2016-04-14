@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://whisk.stage1.ng.bluemix.net:443/api/"
+	defaultBaseURL = "https://openwhisk.ng.bluemix.net/api/"
 )
 
 type Client struct {
@@ -32,7 +32,7 @@ type Client struct {
 type Config struct {
 	Namespace string // NOTE :: Default is "_"
 	AuthToken string
-	BaseURL   *url.URL // NOTE :: Default is "https://whisk.stage1.ng.bluemix.net:443/api/"
+	BaseURL   *url.URL // NOTE :: Default is "https://openwhisk.ng.bluemix.net/api/"
 	Version   string
 	Verbose   bool
 }
