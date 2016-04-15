@@ -103,7 +103,7 @@ func (s *RuleService) Delete(ruleName string) (*http.Response, error) {
 
 func (s *RuleService) SetState(ruleName string, state string) (*Rule, *http.Response, error) {
 	state = strings.ToLower(state)
-	if state != "enable" && state != "disable" {
+	if state != "enabled" && state != "disabled" {
 		err := fmt.Errorf("Invalid state option %s.  Valid options are \"disabled\" and \"enabled\".", state)
 		return nil, nil, err
 	}
