@@ -27,6 +27,7 @@ type Activation struct {
 type Response struct {
 	Status     string `json:"status,omitempty"`
 	StatusCode int    `json:"statusCode,omitempty"`
+	Success    bool   `json:"success,omitempty"`
 	Result     `json:"result,omitempty"`
 }
 
@@ -48,6 +49,8 @@ type Log struct {
 }
 
 func (s *ActivationService) List(options *ActivationListOptions) ([]Activation, *http.Response, error) {
+	// TODO :: for some reason /activations only works with "_" as namespace
+	s.client.Namespace = "_"
 	route := "activations"
 	route, err := addRouteOptions(route, options)
 	if err != nil {
@@ -70,6 +73,9 @@ func (s *ActivationService) List(options *ActivationListOptions) ([]Activation, 
 }
 
 func (s *ActivationService) Get(activationID string) (*Activation, *http.Response, error) {
+	// TODO :: for some reason /activations/:id only works with "_" as namespace
+	s.client.Namespace = "_"
+
 	route := fmt.Sprintf("activations/%s", activationID)
 
 	req, err := s.client.NewRequest("GET", route, nil)
@@ -88,6 +94,8 @@ func (s *ActivationService) Get(activationID string) (*Activation, *http.Respons
 }
 
 func (s *ActivationService) Logs(activationID string) (*Activation, *http.Response, error) {
+	// TODO :: for some reason /activations/:id/logs only works with "_" as namespace
+	s.client.Namespace = "_"
 	route := fmt.Sprintf("activations/%s/logs", activationID)
 
 	req, err := s.client.NewRequest("GET", route, nil)
@@ -105,6 +113,8 @@ func (s *ActivationService) Logs(activationID string) (*Activation, *http.Respon
 }
 
 func (s *ActivationService) Result(activationID string) (*Response, *http.Response, error) {
+	// TODO :: for some reason /activations only works with "_" as namespace
+	s.client.Namespace = "_"
 	route := fmt.Sprintf("activations/%s", activationID)
 
 	req, err := s.client.NewRequest("get", route, nil)
