@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package whisk
+package wski18n
 
-import "encoding/json"
+import "github.com/cloudfoundry/jibber_jabber"
 
-type KeyValue struct {
-    Key   string        `json:"key,omitempty"`
-    Value interface{}   `json:"value"`     // Whisk permits empty values, do not add 'omitempty'
+type Detector interface {
+    DetectLocale() string
+    DetectLanguage() string
 }
 
-type KeyValues struct {
-    Key     string `json:"key,omitempty"`
-    Values  []string `json:"value,omitempty"`
+type JibberJabberDetector struct{}
+
+func (d *JibberJabberDetector) DetectLocale() string {
+    userLocale, err := jibber_jabber.DetectIETF()
+    if err != nil {
+        userLocale = ""
+    }
+    return userLocale
 }
 
-type Annotations []map[string]interface{}
-
-type ActionSequence []KeyValues
-
-//type Parameters []KeyValue
-type Parameters *json.RawMessage
-
-type Limits struct {
-    Timeout *int `json:"timeout,omitempty"`
-    Memory  *int `json:"memory,omitempty"`
-    Logsize *int `json:"logs,omitempty"`
+func (d *JibberJabberDetector) DetectLanguage() string {
+    lang, err := jibber_jabber.DetectLanguage()
+    if err != nil {
+        lang = ""
+    }
+    return lang
 }
