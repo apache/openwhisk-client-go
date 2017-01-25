@@ -1,34 +1,66 @@
-# Contributing to go-whisk
+<!--
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+# license agreements.  See the NOTICE file distributed with this work for additional 
+# information regarding copyright ownership.  The ASF licenses this file to you
+# under the Apache License, Version 2.0 (the # "License"); you may not use this 
+# file except in compliance with the License.  You may obtain a copy of the License 
+# at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed 
+# under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+# CONDITIONS OF ANY KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations under the License.
+#
+-->
 
-## Proposing new features
+# Contributing to Apache OpenWhisk
 
-If you would like to implement a new feature, please [raise an issue](https://github.ibm.com/BlueMix-Fabric/go-whisk) before sending a pull request so the feature can be discussed.
-This is to avoid you spending your valuable time working on a feature that the project developers are not willing to accept into the code base.
+Anyone can contribute to the OpenWhisk project and we welcome your contributions.
 
-## Fixing bugs
+There are multiple ways to contribute: report bugs, improve the docs, and
+contribute code, but you must follow these prerequisites and guidelines:
 
-If you would like to fix a bug, please [raise an issue](https://github.ibm.com/BlueMix-Fabric/go-whisk) before sending a pull request so it can be discussed.
-If the fix is trivial or non controversial then this is not usually necessary.
+ - [Contributor License Agreement](#contributor-license-agreement)
+ - [Raising issues](#raising-issues)
+ - [Coding Standards](#coding-standards)
 
-## Merge approval
+### Contributor License Agreement
 
-The project maintainers use LGTM (Looks Good To Me) in comments on the code review to
-indicate acceptance. A change requires LGTMs from two of the maintainers of each
-component affected.
+All contributors must sign and submit an Apache CLA (Contributor License Agreement).
 
-## Communication
-Please use [Slack channel #whisk-users](https://cloudplatform.slack.com/messages/whisk_cli).
-## Setup
-Project was written with `Go v1.5`.
+Instructions on how to do this can be found here:
+[http://www.apache.org/licenses/#clas](http://www.apache.org/licenses/#clas)
 
-## Testing
+Once submitted, you will receive a confirmation email from the Apache Software Foundation (ASF) and be added to
+the following list: http://people.apache.org/unlistedclas.html. 
 
-This repository needs unit tests.
+Project committers will use this list to verify pull requests (PRs) come from contributors that have signed a CLA.
 
-Please provide information that helps the developer test any changes they make before submitting.
+We look forward to your contributions! 
 
-Should pass the cli integration test defined in the [main whisk project](https://github.rtp.raleigh.ibm.com/whisk-development/openwhisk/blob/master/tests/src/common/WskCli.java).
+## Raising issues
 
-## Coding style guidelines
+Please raise any bug reports on the respective project repository's GitHub issue tracker. Be sure to search the 
+list to see if your issue has already been raised.
 
-Use idomatic go.  (try to) Document exported functions.
+A good bug report is one that make it easy for us to understand what you were trying to do and what went wrong. 
+Provide as much context as possible so we can try to recreate the issue.
+
+### Discussion
+
+Please use the project's developer email list to engage our community:
+[dev@openwhisk.incubator.apache.org](dev@openwhisk.incubator.apache.org)
+
+In addition, we provide a "dev" Slack team channel for conversations at:
+https://openwhisk-team.slack.com/messages/dev/
+
+### Coding standards
+
+Please ensure you follow the coding standards used throughout the existing
+code base. Some basic rules include:
+
+ - all files must have the Apache license in the header.
+ - all PRs must have passing builds for all operating systems.
