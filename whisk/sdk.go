@@ -20,6 +20,7 @@ import (
     "fmt"
     "errors"
     "net/http"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type SdkService struct {
@@ -43,8 +44,9 @@ func (s *SdkService) Install(relFileUrl string) (*http.Response, error) {
     req, err := http.NewRequest("GET", urlStr, nil)
     if err != nil {
         Debug(DbgError, "http.NewRequest(GET, %s, nil) error: %s\n", urlStr, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.url}}': {{.err}}")
-        werr := MakeWskError(errors.New("Unable to create HTTP request for GET '{{.url}}': {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.url}}': {{.err}}",
+            map[string]interface{}{"url": urlStr, "err": err})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
 

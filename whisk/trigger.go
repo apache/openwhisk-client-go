@@ -21,6 +21,7 @@ import (
     "net/http"
     "errors"
     "net/url"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type TriggerService struct {
@@ -28,52 +29,44 @@ type TriggerService struct {
 }
 
 type Trigger struct {
-    Namespace string                `json:"namespace,omitempty"`
-    Name      string                `json:"-"`
-    Version   string                `json:"version,omitempty"`
-    Publish   bool                  `json:"publish,omitempty"`
-    ActivationId string             `json:"activationId,omitempty"`
-    Annotations KeyValueArr         `json:"annotations,omitempty"`
-    Parameters  KeyValueArr         `json:"parameters,omitempty"`
-    //Limits                        `json:"limits,omitempty"`
-}
+    Namespace       string          `json:"namespace,omitempty"`
+    Name            string          `json:"name,omityempty"`
+    Version         string          `json:"version,omitempty"`
+    ActivationId    string          `json:"activationId,omitempty"`
+    Annotations     KeyValueArr     `json:"annotations,omitempty"`
+    Parameters      KeyValueArr     `json:"parameters,omitempty"`
+    Limits          *Limits         `json:"limits,omitempty"`
+    Publish         *bool           `json:"publish,omitempty"`
 
-type TriggerFromServer struct {
-    Namespace string                `json:"namespace"`
-    Name      string                `json:"name"`
-    Version   string                `json:"version"`
-    Publish   bool                  `json:"publish"`
-    ActivationId string             `json:"activationId,omitempty"`
-    Annotations KeyValueArr         `json:"annotations"`
-    Parameters  KeyValueArr         `json:"parameters"`
-    Limits                          `json:"limits"`
 }
 
 type TriggerListOptions struct {
-    Limit int  `url:"limit"`
-    Skip  int  `url:"skip"`
-    Docs  bool `url:"docs,omitempty"`
+    Limit           int             `url:"limit"`
+    Skip            int             `url:"skip"`
+    Docs            bool            `url:"docs,omitempty"`
 }
 
-func (s *TriggerService) List(options *TriggerListOptions) ([]TriggerFromServer, *http.Response, error) {
+func (s *TriggerService) List(options *TriggerListOptions) ([]Trigger, *http.Response, error) {
     route := "triggers"
     routeUrl, err := addRouteOptions(route, options)
     if err != nil {
         Debug(DbgError, "addRouteOptions(%s, %#v) error: '%s'\n", route, options, err)
-         fmt.Println("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}")
-        werr := MakeWskError(errors.New("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}",
+            map[string]interface{}{"options": fmt.Sprintf("%#v", options), "route": route, "err": err})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    req, err := s.client.NewRequestUrl("GET", routeUrl, nil)
+    req, err := s.client.NewRequestUrl("GET", routeUrl, nil, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson)
     if err != nil {
-        Debug(DbgError, "http.NewRequest(GET, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        Debug(DbgError, "http.NewRequestUrl(GET, %s, nil, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson); error: '%s'\n", route, err)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    var triggers []TriggerFromServer
+    var triggers []Trigger
     resp, err := s.client.Do(req, &triggers)
     if err != nil {
         Debug(DbgError, "s.client.Do() error - HTTP req %s; error: '%s'\n", req.URL.String(), err)
@@ -84,7 +77,7 @@ func (s *TriggerService) List(options *TriggerListOptions) ([]TriggerFromServer,
 
 }
 
-func (s *TriggerService) Insert(trigger *Trigger, overwrite bool) (*TriggerFromServer, *http.Response, error) {
+func (s *TriggerService) Insert(trigger *Trigger, overwrite bool) (*Trigger, *http.Response, error) {
     // Encode resource name as a path (with no query params) before inserting it into the URI
     // This way any '?' chars in the name won't be treated as the beginning of the query params
     triggerName := (&url.URL{Path:  trigger.Name}).String()
@@ -93,20 +86,22 @@ func (s *TriggerService) Insert(trigger *Trigger, overwrite bool) (*TriggerFromS
     routeUrl, err := url.Parse(route)
     if err != nil {
         Debug(DbgError, "url.Parse(%s) error: %s\n", route, err)
-         fmt.Println("Invalid request URL '{{.url}}': {{.err}}")
-        werr := MakeWskError(errors.New("Invalid request URL '{{.url}}': {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Invalid request URL '{{.url}}': {{.err}}",
+            map[string]interface{}{"url": route, "err": err})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    req, err := s.client.NewRequestUrl("PUT", routeUrl, trigger)
+    req, err := s.client.NewRequestUrl("PUT", routeUrl, trigger, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson)
     if err != nil {
-        Debug(DbgError, "http.NewRequest(PUT, %s); error: '%s'\n", routeUrl, err)
-         fmt.Println("Unable to create HTTP request for PUT '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for PUT '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        Debug(DbgError, "http.NewRequestUrl(PUT, %s, %+v, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson); error: '%s'\n", routeUrl, trigger, err)
+        errStr := wski18n.T("Unable to create HTTP request for PUT '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": routeUrl, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    t := new(TriggerFromServer)
+    t := new(Trigger)
     resp, err := s.client.Do(req, &t)
     if err != nil {
         Debug(DbgError, "s.client.Do() error - HTTP req %s; error: '%s'\n", req.URL.String(), err)
@@ -117,21 +112,22 @@ func (s *TriggerService) Insert(trigger *Trigger, overwrite bool) (*TriggerFromS
 
 }
 
-func (s *TriggerService) Get(triggerName string) (*TriggerFromServer, *http.Response, error) {
+func (s *TriggerService) Get(triggerName string) (*Trigger, *http.Response, error) {
     // Encode resource name as a path (with no query params) before inserting it into the URI
     // This way any '?' chars in the name won't be treated as the beginning of the query params
     triggerName = (&url.URL{Path: triggerName}).String()
     route := fmt.Sprintf("triggers/%s", triggerName)
 
-    req, err := s.client.NewRequest("GET", route, nil)
+    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(GET, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    t := new(TriggerFromServer)
+    t := new(Trigger)
     resp, err := s.client.Do(req, &t)
     if err != nil {
         Debug(DbgError, "s.client.Do() error - HTTP req %s; error: '%s'\n", req.URL.String(), err)
@@ -142,21 +138,22 @@ func (s *TriggerService) Get(triggerName string) (*TriggerFromServer, *http.Resp
 
 }
 
-func (s *TriggerService) Delete(triggerName string) (*TriggerFromServer, *http.Response, error) {
+func (s *TriggerService) Delete(triggerName string) (*Trigger, *http.Response, error) {
     // Encode resource name as a path (with no query params) before inserting it into the URI
     // This way any '?' chars in the name won't be treated as the beginning of the query params
     triggerName = (&url.URL{Path: triggerName}).String()
     route := fmt.Sprintf("triggers/%s", triggerName)
 
-    req, err := s.client.NewRequest("DELETE", route, nil)
+    req, err := s.client.NewRequest("DELETE", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(DELETE, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for DELETE '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for DELETE '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for DELETE '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    t := new(TriggerFromServer)
+    t := new(Trigger)
     resp, err := s.client.Do(req, &t)
     if err != nil {
         Debug(DbgError, "s.client.Do() error - HTTP req %s; error: '%s'\n", req.URL.String(), err)
@@ -166,21 +163,22 @@ func (s *TriggerService) Delete(triggerName string) (*TriggerFromServer, *http.R
     return t, resp, nil
 }
 
-func (s *TriggerService) Fire(triggerName string, payload interface{}) (*TriggerFromServer, *http.Response, error) {
+func (s *TriggerService) Fire(triggerName string, payload interface{}) (*Trigger, *http.Response, error) {
     // Encode resource name as a path (with no query params) before inserting it into the URI
     // This way any '?' chars in the name won't be treated as the beginning of the query params
     triggerName = (&url.URL{Path: triggerName}).String()
     route := fmt.Sprintf("triggers/%s", triggerName)
 
-    req, err := s.client.NewRequest("POST", route, payload)
+    req, err := s.client.NewRequest("POST", route, payload, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError," http.NewRequest(POST, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for POST '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for POST '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for POST '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    t := new(TriggerFromServer)
+    t := new(Trigger)
     resp, err := s.client.Do(req, &t)
     if err != nil {
         Debug(DbgError, "s.client.Do() error - HTTP req %s; error: '%s'\n", req.URL.String(), err)

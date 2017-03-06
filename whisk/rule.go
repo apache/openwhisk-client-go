@@ -22,6 +22,7 @@ import (
     "strings"
     "errors"
     "net/url"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type RuleService struct {
@@ -32,16 +33,17 @@ type Rule struct {
     Namespace string    `json:"namespace,omitempty"`
     Name      string    `json:"name,omitempty"`
     Version   string    `json:"version,omitempty"`
-    Publish   bool      `json:"publish,omitempty"`
     Status  string      `json:"status"`
-    Trigger string      `json:"trigger"`
-    Action  string      `json:"action"`
+    Trigger interface{} `json:"trigger"`
+    Action  interface{} `json:"action"`
+    Publish *bool       `json:"publish,omitempty"`
+
 }
 
 type RuleListOptions struct {
-    Limit int  `url:"limit"`
-    Skip  int  `url:"skip"`
-    Docs  bool `url:"docs,omitempty"`
+    Limit       int     `url:"limit"`
+    Skip        int     `url:"skip"`
+    Docs        bool    `url:"docs,omitempty"`
 }
 
 func (s *RuleService) List(options *RuleListOptions) ([]Rule, *http.Response, error) {
@@ -49,16 +51,18 @@ func (s *RuleService) List(options *RuleListOptions) ([]Rule, *http.Response, er
     routeUrl, err := addRouteOptions(route, options)
     if err != nil {
         Debug(DbgError, "addRouteOptions(%s, %#v) error: '%s'\n", route, options, err)
-         fmt.Println("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}")
-        werr := MakeWskError(errors.New("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}",
+            map[string]interface{}{"options": fmt.Sprintf("%#v", options), "route": route, "err": err})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    req, err := s.client.NewRequestUrl("GET", routeUrl, nil)
+    req, err := s.client.NewRequestUrl("GET", routeUrl, nil, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson)
     if err != nil {
-        Debug(DbgError, "http.NewRequest(GET, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        Debug(DbgError, "http.NewRequestUrl(GET, %s, nil, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson); error: '%s'\n", route, err)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -78,11 +82,12 @@ func (s *RuleService) Insert(rule *Rule, overwrite bool) (*Rule, *http.Response,
     ruleName := (&url.URL{Path: rule.Name}).String()
     route := fmt.Sprintf("rules/%s?overwrite=%t", ruleName, overwrite)
 
-    req, err := s.client.NewRequest("PUT", route, rule)
+    req, err := s.client.NewRequest("PUT", route, rule, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(PUT, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for PUT '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for PUT '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for PUT '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -102,11 +107,12 @@ func (s *RuleService) Get(ruleName string) (*Rule, *http.Response, error) {
     ruleName = (&url.URL{Path: ruleName}).String()
     route := fmt.Sprintf("rules/%s", ruleName)
 
-    req, err := s.client.NewRequest("GET", route, nil)
+    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(GET, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -126,11 +132,12 @@ func (s *RuleService) Delete(ruleName string) (*http.Response, error) {
     ruleName = (&url.URL{Path: ruleName}).String()
     route := fmt.Sprintf("rules/%s", ruleName)
 
-    req, err := s.client.NewRequest("DELETE", route, nil)
+    req, err := s.client.NewRequest("DELETE", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(DELETE, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for DELETE '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for DELETE '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for DELETE '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
 
@@ -146,8 +153,9 @@ func (s *RuleService) Delete(ruleName string) (*http.Response, error) {
 func (s *RuleService) SetState(ruleName string, state string) (*Rule, *http.Response, error) {
     state = strings.ToLower(state)
     if state != "active" && state != "inactive" {
-         fmt.Println("Internal error. Invalid state option '{{.state}}'. Valid options are \"active\" and \"inactive\".")
-        werr := MakeWskError(errors.New("Internal error. Invalid state option '{{.state}}'. Valid options are \"active\" and \"inactive\"."), EXITCODE_ERR_GENERAL, DISPLAY_MSG, DISPLAY_USAGE)
+        errStr := wski18n.T("Internal error. Invalid state option '{{.state}}'. Valid options are \"active\" and \"inactive\".",
+            map[string]interface{}{"state": state})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -158,11 +166,12 @@ func (s *RuleService) SetState(ruleName string, state string) (*Rule, *http.Resp
 
     ruleState := &Rule{ Status: state }
 
-    req, err := s.client.NewRequest("POST", route, ruleState)
+    req, err := s.client.NewRequest("POST", route, ruleState, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(POST, %s); error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for POST '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for POST '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for POST '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
