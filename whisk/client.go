@@ -28,12 +28,20 @@ import (
     "crypto/tls"
     "errors"
     "reflect"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
+    "strings"
 )
 
 const (
     defaultBaseURL = "openwhisk.ng.bluemix.net"
     AuthRequired = true
     AuthOptional = false
+    IncludeNamespaceInUrl = true
+    DoNotIncludeNamespaceInUrl = false
+    AppendOpenWhiskPathPrefix = true
+    DoNotAppendOpenWhiskPathPrefix = false
+    EncodeBodyAsJson = "json"
+    EncodeBodyAsFormData = "formdata"
 )
 
 type Client struct {
@@ -49,6 +57,7 @@ type Client struct {
     Packages    *PackageService
     Namespaces  *NamespaceService
     Info        *InfoService
+    Apis        *ApiService
 }
 
 type Config struct {
@@ -86,8 +95,9 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
         config.BaseURL, err = url.Parse(defaultBaseURL)
         if err != nil {
             Debug(DbgError, "url.Parse(%s) error: %s\n", defaultBaseURL, err)
-             fmt.Println("Unable to create request URL '{{.url}}': {{.err}}")
-            werr := MakeWskError(errors.New("Unable to create request URL '{{.url}}': {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            errStr := wski18n.T("Unable to create request URL '{{.url}}': {{.err}}",
+                map[string]interface{}{"url": defaultBaseURL, "err": err})
+            werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
             return nil, werr
         }
     }
@@ -113,6 +123,7 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
     c.Packages = &PackageService{client: c}
     c.Namespaces = &NamespaceService{client: c}
     c.Info = &InfoService{client: c}
+    c.Apis = &ApiService{client: c}
 
     return c, nil
 }
@@ -121,22 +132,26 @@ func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
 // Request/Utility Functions //
 ///////////////////////////////
 
-func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
-    if c.Config.Namespace != "" {
-        urlStr = fmt.Sprintf("%s/namespaces/%s/%s", c.Config.Version, c.Config.Namespace, urlStr)
+func (c *Client) NewRequest(method, urlStr string, body interface{}, includeNamespaceInUrl bool) (*http.Request, error) {
+    if (includeNamespaceInUrl) {
+        if c.Config.Namespace != "" {
+            urlStr = fmt.Sprintf("%s/namespaces/%s/%s", c.Config.Version, c.Config.Namespace, urlStr)
+        } else {
+            urlStr = fmt.Sprintf("%s/namespaces", c.Config.Version)
+        }
     } else {
-        urlStr = fmt.Sprintf("%s/namespaces", c.Config.Version)
+        urlStr = fmt.Sprintf("%s/%s", c.Config.Version, urlStr)
     }
 
-    rel, err := url.Parse(urlStr)
+    urlStr = fmt.Sprintf("%s/%s", c.BaseURL.String(), urlStr)
+    u, err := url.Parse(urlStr)
     if err != nil {
         Debug(DbgError, "url.Parse(%s) error: %s\n", urlStr, err)
-         fmt.Println("Invalid request URL '{{.url}}': {{.err}}")
-        werr := MakeWskError(errors.New("Invalid request URL '{{.url}}': {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Invalid request URL '{{.url}}': {{.err}}",
+            map[string]interface{}{"url": urlStr, "err": err})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
-
-    u := c.BaseURL.ResolveReference(rel)
 
     var buf io.ReadWriter
     if body != nil {
@@ -144,16 +159,17 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
         err := json.NewEncoder(buf).Encode(body)
         if err != nil {
             Debug(DbgError, "json.Encode(%#v) error: %s\n", body, err)
-             fmt.Println("Error encoding request body: {{.err}}")
-            werr := MakeWskError(errors.New("Error encoding request body: {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            errStr := wski18n.T("Error encoding request body: {{.err}}", map[string]interface{}{"err": err})
+            werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
             return nil, werr
         }
     }
+
     req, err := http.NewRequest(method, u.String(), buf)
     if err != nil {
         Debug(DbgError, "http.NewRequest(%v, %s, buf) error: %s\n", method, u.String(), err)
-         fmt.Println("Error initializing request: {{.err}}")
-        werr := MakeWskError(errors.New("Error initializing request: {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Error initializing request: {{.err}}", map[string]interface{}{"err": err})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
     if req.Body != nil {
@@ -163,8 +179,9 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
     err = c.addAuthHeader(req, AuthRequired)
     if err != nil {
         Debug(DbgError, "addAuthHeader() error: %s\n", err)
-         fmt.Println("Unable to add the HTTP authentication header: {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to add the HTTP authentication header: {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to add the HTTP authentication header: {{.err}}",
+            map[string]interface{}{"err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
 
@@ -178,8 +195,8 @@ func (c *Client) addAuthHeader(req *http.Request, authRequired bool) error {
     } else {
         if authRequired {
             Debug(DbgError, "The required authorization key is not configured - neither set as a property nor set via the --auth CLI argument\n")
-             fmt.Println("Authorization key is not configured (--auth is required)")
-            werr := MakeWskError(errors.New("Authorization key is not configured (--auth is required)"), EXITCODE_ERR_USAGE, DISPLAY_MSG, DISPLAY_USAGE)
+            errStr := wski18n.T("Authorization key is not configured (--auth is required)")
+            werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_USAGE, DISPLAY_MSG, DISPLAY_USAGE)
             return werr
         }
     }
@@ -216,6 +233,10 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
     defer resp.Body.Close()
     Verbose("RESPONSE:")
     Verbose("Got response with code %d\n", resp.StatusCode)
+    if (IsVerbose() && len(resp.Header) > 0) {
+        fmt.Println("Resp Headers")
+        printJSON(resp.Header)
+    }
 
     // Read the response body
     data, err := ioutil.ReadAll(resp.Body)
@@ -231,6 +252,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
     // With the HTTP response status code and the HTTP body contents,
     // the possible response scenarios are:
     //
+    // 0. HTTP Success + Body indicating a whisk failure result
     // 1. HTTP Success + Valid body matching request expectations
     // 2. HTTP Success + No body expected
     // 3. HTTP Success + Body does NOT match request expectations
@@ -242,7 +264,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
     // If this happens, just return no data and an error
     if !IsHttpRespSuccess(resp) && data == nil {
         Debug(DbgError, "HTTP failure %d + no body\n", resp.StatusCode)
-        werr := MakeWskError(errors.New("Command failed due to an HTTP failure"), resp.StatusCode-256,
+        werr := MakeWskError(errors.New(wski18n.T("Command failed due to an HTTP failure")), resp.StatusCode-256,
             DISPLAY_MSG, NO_DISPLAY_USAGE)
         return resp, werr
     }
@@ -253,9 +275,21 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
         return parseErrorResponse(resp, data, v)
     }
 
+    // Handle 0. HTTP Success + Body indicating a whisk failure result
+    //   NOTE: Need to ignore activation records send in response to 'wsk get activation NNN` as
+    //         these will report the same original error giving the appearance that the command failed.
+    if (IsHttpRespSuccess(resp) &&                                      // HTTP Status == 200
+        data!=nil &&                                                    // HTTP response body exists
+        v != nil &&
+        !strings.Contains(reflect.TypeOf(v).String(), "Activation") &&  // Request is not `wsk activation get`
+        !IsResponseResultSuccess(data)) {                               // HTTP response body has Whisk error result
+        Debug(DbgInfo, "Got successful HTTP; but activation response reports an error\n")
+        return parseErrorResponse(resp, data, v)
+    }
+
     // Handle 2. HTTP Success + No body expected
     if IsHttpRespSuccess(resp) && v == nil {
-        Debug(DbgInfo, "No interface provided; no HTTP response body expected")
+        Debug(DbgInfo, "No interface provided; no HTTP response body expected\n")
         return resp, nil
     }
 
@@ -267,7 +301,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 
     // We should never get here, but just in case return failure
     // to keep the compiler happy
-    werr := MakeWskError(errors.New("Command failed due to an internal failure"), EXITCODE_ERR_GENERAL,
+    werr := MakeWskError(errors.New(wski18n.T("Command failed due to an internal failure")), EXITCODE_ERR_GENERAL,
         DISPLAY_MSG, NO_DISPLAY_USAGE)
     return resp, werr
 }
@@ -290,10 +324,12 @@ func parseErrorResponse(resp *http.Response, data []byte, v interface{}) (*http.
             return resp, werr
         }
     } else {
-        Debug(DbgError, "HTTP response with unexpected body failed due to contents parsing error: '%v'\n", err)
-         fmt.Println("The connection failed, or timed out. (HTTP status code {{.code}})")
-        werr := MakeWskError(errors.New("The connection failed, or timed out. (HTTP status code {{.code}})"), resp.StatusCode - 256, DISPLAY_MSG, NO_DISPLAY_USAGE)
-        return resp, werr
+        Debug(DbgInfo, "Detected response status `%s` that an application error was returned\n")
+        errMsg := wski18n.T("The following application error was received: {{.err}}",
+            map[string]interface{}{"err": string(data)})
+        whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode - 256, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
+            NO_MSG_DISPLAYED, APPLICATION_ERR)
+        return parseSuccessResponse(resp, data, v), whiskErr
     }
 }
 
@@ -303,15 +339,18 @@ func parseWhiskErrorResponse(resp *http.Response, data []byte, v interface{}) (*
 
     // Determine if a whisk.error() response was received. Otherwise, the body contents are unknown (#6)
     if err == nil && whiskErrorResponse.Response.Status != nil {
-        Debug(DbgInfo, "Detected that a whisk.error(\"%s\") was returned\n", *whiskErrorResponse.Response.Status)
-         fmt.Println("The following application error was received: {{.err}}")
-        whiskErr := MakeWskError(errors.New("The following application error was received: {{.err}}"), resp.StatusCode - 256, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
+        Debug(DbgInfo, "Detected response status `%s` that a whisk.error(\"%s\") was returned\n",
+            *whiskErrorResponse.Response.Status, *whiskErrorResponse.Response.Result)
+        errMsg := wski18n.T("The following application error was received: {{.err}}",
+            map[string]interface{}{"err": *whiskErrorResponse.Response.Result})
+        whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode - 256, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
             NO_MSG_DISPLAYED, APPLICATION_ERR)
         return parseSuccessResponse(resp, data, v), whiskErr
     } else {
         Debug(DbgError, "HTTP response with unexpected body failed due to contents parsing error: '%v'\n", err)
-         fmt.Println("The connection failed, or timed out. (HTTP status code {{.code}})")
-        whiskErr := MakeWskError(errors.New("The connection failed, or timed out. (HTTP status code {{.code}})"), resp.StatusCode - 256, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errMsg := wski18n.T("The connection failed, or timed out. (HTTP status code {{.code}})",
+            map[string]interface{}{"code": resp.StatusCode})
+        whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode - 256, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return resp, whiskErr
     }
 }
@@ -319,7 +358,9 @@ func parseWhiskErrorResponse(resp *http.Response, data []byte, v interface{}) (*
 func parseSuccessResponse(resp *http.Response, data []byte, v interface{}) (*http.Response) {
     Debug(DbgInfo, "Parsing HTTP response into struct type: %s\n", reflect.TypeOf(v))
 
-    err := json.Unmarshal(data, v)
+    dc := json.NewDecoder(strings.NewReader(string(data)))
+    dc.UseNumber()
+    err := dc.Decode(v)
 
     // If the decode was successful, return the response without error (#1). Otherwise, the decode did not work, so the
     // server response was unexpected (#3)
@@ -350,15 +391,26 @@ type ErrorResponse struct {
 }
 
 type WhiskErrorResponse struct {
-    Response WhiskErrorResult   `json:"response"`
+    Response *WhiskResponse     `json:"response"`
 }
 
-type WhiskErrorResult struct {
-    Status  *string              `json:"status"`
+type WhiskResponse struct {
+    Result  *WhiskResult        `json:"result"`
+    Success bool                `json:"success"`
+    Status  *string             `json:"status"`
+}
+
+type WhiskResult struct {
+//  Error   *WhiskError         `json:"error"`  // whisk.error(<string>) and whisk.reject({msg:<string>}) result in two different kinds of 'error' JSON objects
+}
+
+type WhiskError struct {
+    Msg     *string             `json:"msg"`
 }
 
 func (r ErrorResponse) Error() string {
-    return "{{.msg}} (code {{.code}})"
+    return wski18n.T("{{.msg}} (code {{.code}})",
+        map[string]interface{}{"msg": fmt.Sprintf("%v", r.ErrMsg), "code": r.Code})
 }
 
 ////////////////////////////
@@ -369,64 +421,124 @@ func IsHttpRespSuccess(r *http.Response) bool {
     return r.StatusCode >= 200 && r.StatusCode <= 299
 }
 
+func IsResponseResultSuccess(data []byte) bool {
+    errResp := new(WhiskErrorResponse)
+    err := json.Unmarshal(data, &errResp)
+    if (err == nil && errResp.Response != nil) {
+        return errResp.Response.Success
+    }
+    Debug(DbgWarn, "IsResponseResultSuccess: failed to parse response result: %v\n", err)
+    return true;
+}
+
 //
 // Create a HTTP request object using URL stored in url.URL object
 // Arguments:
 //   method         - HTTP verb (i.e. "GET", "PUT", etc)
 //   urlRelResource - *url.URL structure representing the relative resource URL, including query params
 //   body           - optional. Object whose contents will be JSON encoded and placed in HTTP request body
-func (c *Client) NewRequestUrl(method string, urlRelResource *url.URL, body interface{}) (*http.Request, error) {
-    var urlVerNamespaceStr string
-    if c.Config.Namespace != "" {
-        // Encode path parts before inserting them into the URI so that any '?' is correctly encoded
-        // as part of the path and not the start of the query params
-        verPathEncoded := (&url.URL{Path: c.Config.Version}).String()
-        verNamespaceEncoded := (&url.URL{Path: c.Config.Namespace}).String()
-        urlVerNamespaceStr = fmt.Sprintf("%s/namespaces/%s/", verPathEncoded, verNamespaceEncoded)
-    } else {
-        urlVerNamespaceStr = fmt.Sprintf("%s/namespaces/", c.Config.Version)
-    }
-    urlVerNamespace, err := url.Parse(urlVerNamespaceStr)
-    if err != nil {
-        Debug(DbgError, "url.Parse(%s) error: %s\n", urlVerNamespaceStr, err)
-         fmt.Println("Invalid request URL '{{.url}}': {{.err}}")
-        werr := MakeWskError(errors.New("Invalid request URL '{{.url}}': {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
-        return nil, werr
-    }
+//   includeNamespaceInUrl - when true "/namespaces/NAMESPACE" is included in the final URL; otherwise not included.
+func (c *Client) NewRequestUrl(
+        method string,
+        urlRelResource *url.URL,
+        body interface{},
+        includeNamespaceInUrl bool,
+        appendOpenWhiskPath bool,
+        encodeBodyAs string) (*http.Request, error) {
+    var requestUrl *url.URL
+    var err error
 
-    // URL construction order is important so that parts of the path are not lost
-    // 1. Combine absolute Base URL path with the relative namespace path.  The creates an absolute URL
-    // 2. Combine the Base+Namespace absolute URL with the relative resource path (including query params)
-    u := c.BaseURL.ResolveReference(urlVerNamespace)
-    u = u.ResolveReference(urlRelResource)
+    if (appendOpenWhiskPath) {
+        var urlVerNamespaceStr string
+        var verPathEncoded = (&url.URL{Path: c.Config.Version}).String()
 
-    var buf io.ReadWriter
-    if body != nil {
-        buf = new(bytes.Buffer)
-        err := json.NewEncoder(buf).Encode(body)
+        if (includeNamespaceInUrl) {
+            if c.Config.Namespace != "" {
+                // Encode path parts before inserting them into the URI so that any '?' is correctly encoded
+                // as part of the path and not the start of the query params
+                verNamespaceEncoded := (&url.URL{Path: c.Config.Namespace}).String()
+                urlVerNamespaceStr = fmt.Sprintf("%s/namespaces/%s", verPathEncoded, verNamespaceEncoded)
+            } else {
+                urlVerNamespaceStr = fmt.Sprintf("%s/namespaces", verPathEncoded)
+            }
+        } else {
+            urlVerNamespaceStr = fmt.Sprintf("%s", verPathEncoded)
+        }
+
+        // Assemble the complete URL: base + version + [namespace] + resource_relative_path
+        Debug(DbgInfo, "basepath: %s, version/namespace path: %s, resource path: %s\n", c.BaseURL.String(), urlVerNamespaceStr, urlRelResource.String())
+        urlStr := fmt.Sprintf("%s/%s/%s", c.BaseURL.String(), urlVerNamespaceStr, urlRelResource.String())
+        requestUrl, err = url.Parse(urlStr)
         if err != nil {
-            Debug(DbgError, "json.Encode(%#v) error: %s\n", body, err)
-             fmt.Println("Error encoding request body: {{.err}}")
-            werr := MakeWskError(errors.New("Error encoding request body: {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            Debug(DbgError, "url.Parse(%s) error: %s\n", urlStr, err)
+            errStr := wski18n.T("Invalid request URL '{{.url}}': {{.err}}",
+                map[string]interface{}{"url": urlStr, "err": err})
+            werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            return nil, werr
+        }
+    } else {
+        Debug(DbgInfo, "basepath: %s, resource path: %s\n", c.BaseURL.String(), urlRelResource.String())
+        urlStr := fmt.Sprintf("%s/%s", c.BaseURL.String(), urlRelResource.String())
+        requestUrl, err = url.Parse(urlStr)
+        if err != nil {
+            Debug(DbgError, "url.Parse(%s) error: %s\n", urlStr, err)
+            errStr := wski18n.T("Invalid request URL '{{.url}}': {{.err}}",
+                map[string]interface{}{"url": urlStr, "err": err})
+            werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
             return nil, werr
         }
     }
-    req, err := http.NewRequest(method, u.String(), buf)
+
+    var buf io.ReadWriter
+    if body != nil {
+        if (encodeBodyAs == EncodeBodyAsJson) {
+            buf = new(bytes.Buffer)
+            err := json.NewEncoder(buf).Encode(body)
+            if err != nil {
+                Debug(DbgError, "json.Encode(%#v) error: %s\n", body, err)
+                errStr := wski18n.T("Error encoding request body: {{.err}}",
+                    map[string]interface{}{"err": err})
+                werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+                return nil, werr
+            }
+        } else if (encodeBodyAs == EncodeBodyAsFormData) {
+            if values, ok := body.(url.Values); ok {
+                buf = bytes.NewBufferString(values.Encode())
+            } else {
+                Debug(DbgError, "Invalid form data body: %v\n", body)
+                errStr := wski18n.T("Internal error.  Form data encoding failure")
+                werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+                return nil, werr
+            }
+        } else {
+            Debug(DbgError, "Invalid body encode type: %s\n", encodeBodyAs)
+            errStr := wski18n.T("Internal error.  Invalid encoding type '{{.encodetype}}'",
+                map[string]interface{}{"encodetype": encodeBodyAs})
+            werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            return nil, werr
+        }
+    }
+
+    req, err := http.NewRequest(method, requestUrl.String(), buf)
     if err != nil {
-        Debug(DbgError, "http.NewRequest(%v, %s, buf) error: %s\n", method, u.String(), err)
-         fmt.Println("Error initializing request: {{.err}}")
-        werr := MakeWskError(errors.New("Error initializing request: {{.err}}"), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        Debug(DbgError, "http.NewRequest(%v, %s, buf) error: %s\n", method, requestUrl.String(), err)
+        errStr := wski18n.T("Error initializing request: {{.err}}", map[string]interface{}{"err": err})
+        werr := MakeWskError(errors.New(errStr), EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
-    if req.Body != nil {
+    if (req.Body != nil && encodeBodyAs == EncodeBodyAsJson) {
         req.Header.Add("Content-Type", "application/json")
+    }
+    if (req.Body != nil && encodeBodyAs == EncodeBodyAsFormData) {
+        req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
     }
 
     err = c.addAuthHeader(req, AuthRequired)
     if err != nil {
         Debug(DbgError, "addAuthHeader() error: %s\n", err)
-         fmt.Println("Unable to add the HTTP authentication header: {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to add the HTTP authentication header: {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to add the HTTP authentication header: {{.err}}",
+            map[string]interface{}{"err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
 

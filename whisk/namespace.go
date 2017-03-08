@@ -19,7 +19,7 @@ package whisk
 import (
     "net/http"
     "errors"
-    "fmt"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type Namespace struct {
@@ -28,10 +28,10 @@ type Namespace struct {
 }
 
 type Contents struct {
-    Actions  []Action              `json:"actions"`
-    Packages []Package             `json:"packages"`
-    Triggers []TriggerFromServer   `json:"triggers"`
-    Rules    []Rule                `json:"rules"`
+    Actions  []Action       `json:"actions"`
+    Packages []Package      `json:"packages"`
+    Triggers []Trigger      `json:"triggers"`
+    Rules    []Rule         `json:"rules"`
 }
 
 type NamespaceService struct {
@@ -45,11 +45,12 @@ func (s *NamespaceService) List() ([]Namespace, *http.Response, error) {
     // Create the request against the namespaces resource
     s.client.Config.Namespace = ""
     route := ""
-    req, err := s.client.NewRequest("GET", route, nil)
+    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "s.client.NewRequest(GET) error: %s\n", err)
-         fmt.Println("Unable to create HTTP request for GET: {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET: {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET: {{.err}}",
+            map[string]interface{}{"err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -83,11 +84,11 @@ func (s *NamespaceService) Get(namespace string) (*Namespace, *http.Response, er
         Name: namespace,
     }
 
-    req, err := s.client.NewRequest("GET", "", nil)
+    req, err := s.client.NewRequest("GET", "", nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "s.client.NewRequest(GET) error: %s\n", err)
-         fmt.Println("Unable to create HTTP request for GET: {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET: {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET: {{.err}}", map[string]interface{}{"err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return resNamespace, nil, werr
     }
 

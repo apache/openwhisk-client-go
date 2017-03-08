@@ -21,6 +21,7 @@ import (
     "net/http"
     "errors"
     "net/url"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type ActivationService struct {
@@ -28,25 +29,27 @@ type ActivationService struct {
 }
 
 type Activation struct {
-    Namespace string `json:"namespace"`
-    Name      string `json:"name"`
-    Version   string `json:"version"`
-    Publish   bool   `json:"publish"`
-    Subject         string `json:"subject"`
-    ActivationID    string `json:"activationId"`
-    Cause           string `json:"cause,omitempty"`
-    Start           int64  `json:"start"`        // When action started (in milliseconds since January 1, 1970 UTC)
-    End             int64  `json:"end"`                    // Since a 0 is a valid value from server, don't omit
-    Response        `json:"response"`
-    Logs            []string `json:"logs"`
+    Namespace       string      `json:"namespace"`
+    Name            string      `json:"name"`
+    Version         string      `json:"version"`
+    Subject         string      `json:"subject"`
+    ActivationID    string      `json:"activationId"`
+    Cause           string      `json:"cause,omitempty"`
+    Start           int64       `json:"start"`        // When action started (in milliseconds since January 1, 1970 UTC)
+    End             int64       `json:"end"`          // Since a 0 is a valid value from server, don't omit
+    Duration        int64       `json:"duration"`     // Only available for actions
+    Response                    `json:"response"`
+    Logs            []string    `json:"logs"`
     Annotations     KeyValueArr `json:"annotations"`
+    Publish         *bool       `json:"publish,omitempty"`
+
 }
 
 type Response struct {
-    Status     string `json:"status"`
-    StatusCode int    `json:"statusCode"`
-    Success    bool   `json:"success"`
-    Result     `json:"result"`
+    Status     string   `json:"status"`
+    StatusCode int      `json:"statusCode"`
+    Success    bool     `json:"success"`
+    Result     *Result  `json:"result,omitempty"`
 }
 
 type Result map[string]interface{}
@@ -74,16 +77,18 @@ func (s *ActivationService) List(options *ActivationListOptions) ([]Activation, 
     routeUrl, err := addRouteOptions(route, options)
     if err != nil {
         Debug(DbgError, "addRouteOptions(%s, %#v) error: '%s'\n", route, options, err)
-         fmt.Println("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to append options '{{.options}}' to URL route '{{.route}}': {{.err}}",
+            map[string]interface{}{"options": fmt.Sprintf("%#v", options), "route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
-    req, err := s.client.NewRequestUrl("GET", routeUrl, nil)
+    req, err := s.client.NewRequestUrl("GET", routeUrl, nil, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson)
     if err != nil {
-        Debug(DbgError, "http.NewRequest(GET, %s) error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        Debug(DbgError, "http.NewRequestUrl(GET, %s, nil, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson) error: '%s'\n", route, err)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -109,11 +114,12 @@ func (s *ActivationService) Get(activationID string) (*Activation, *http.Respons
     activationID = (&url.URL{Path: activationID}).String()
     route := fmt.Sprintf("activations/%s", activationID)
 
-    req, err := s.client.NewRequest("GET", route, nil)
+    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(GET, %s) error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -137,11 +143,12 @@ func (s *ActivationService) Logs(activationID string) (*Activation, *http.Respon
     activationID = (&url.URL{Path: activationID}).String()
     route := fmt.Sprintf("activations/%s/logs", activationID)
 
-    req, err := s.client.NewRequest("GET", route, nil)
+    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(GET, %s) error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
@@ -165,11 +172,12 @@ func (s *ActivationService) Result(activationID string) (*Response, *http.Respon
     activationID = (&url.URL{Path: activationID}).String()
     route := fmt.Sprintf("activations/%s/result", activationID)
 
-    req, err := s.client.NewRequest("GET", route, nil)
+    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
     if err != nil {
         Debug(DbgError, "http.NewRequest(GET, %s) error: '%s'\n", route, err)
-         fmt.Println("Unable to create HTTP request for GET '{{.route}}': {{.err}}")
-        werr := MakeWskErrorFromWskError(errors.New("Unable to create HTTP request for GET '{{.route}}': {{.err}}"), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        errStr := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXITCODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, nil, werr
     }
 
