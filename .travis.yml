@@ -1,0 +1,5 @@
+# A Travis CI configuration file.
+
+sudo: required
+
+language: go
