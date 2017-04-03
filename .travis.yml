@@ -3,3 +3,6 @@
 sudo: required
 
 language: go
+
+go:
+  - 1.7
