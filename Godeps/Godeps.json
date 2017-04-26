@@ -1,0 +1,5 @@
+{
+	"ImportPath": "github.ibm.com/BlueMix-Fabric/go-whisk",
+	"GoVersion": "go1.5",
+	"Deps": []
+}
