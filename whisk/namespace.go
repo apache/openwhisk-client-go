@@ -19,7 +19,7 @@ package whisk
 import (
     "net/http"
     "errors"
-    "../wski18n"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type Namespace struct {

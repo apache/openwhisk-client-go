@@ -25,7 +25,7 @@ import (
     "github.com/fatih/color"
     "github.com/google/go-querystring/query"
     "github.com/hokaccha/go-prettyjson"
-    "../wski18n"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 // addOptions adds the parameters in opt as URL query parameters to s.  opt

@@ -28,7 +28,7 @@ import (
     "crypto/tls"
     "errors"
     "reflect"
-    "../wski18n"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
     "strings"
 )
 

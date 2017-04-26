@@ -21,7 +21,7 @@ import (
     "net/http"
     "errors"
     "net/url"
-    "../wski18n"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type TriggerService struct {

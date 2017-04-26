@@ -21,7 +21,7 @@ import (
     "net/http"
     "net/url"
     "errors"
-    "../wski18n"
+    "github.com/openwhisk/openwhisk-client-go/wski18n"
 )
 
 type PackageService struct {
