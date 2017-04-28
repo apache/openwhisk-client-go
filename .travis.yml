@@ -7,7 +7,7 @@ language: go
 go:
   - 1.7
 
-  before_install:
+before_install:
 - ./tools/travis/setup.sh
 
 script:
