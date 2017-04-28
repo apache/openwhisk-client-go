@@ -6,3 +6,6 @@ language: go
 
 go:
   - 1.7
+
+script:
+- ./tools/travis/build.sh
