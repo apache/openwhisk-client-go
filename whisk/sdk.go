@@ -21,7 +21,7 @@ import (
     "fmt"
     "errors"
     "net/http"
-    "../wski18n"
+    "github.com/apache/incubator-openwhisk-client-go/wski18n"
 )
 
 type SdkService struct {

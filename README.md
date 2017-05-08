@@ -1,4 +1,4 @@
-# go-whisk
+# incubator-openwhisk-client-go
 
 `go-whisk` is a Go client library for accessing the IBM Whisk API.
 
@@ -6,7 +6,7 @@
 ### Usage
 
 ```go
-import "github.ibm.com/BlueMix-Fabric/go-whisk/whisk"
+import "github.com/apache/incubator-openwhisk-client-go/whisk"
 ```
 
 Construct a new whisk client, then use various services to access different parts of the whisk api.  For example to get the `hello` action:
@@ -47,7 +47,7 @@ import (
   "net/http"
   "net/url"
 
-  "github.ibm.com/BlueMix-Fabric/go-whisk/whisk"
+  "github.com/apache/incubator-openwhisk-client-go/whisk"
 )
 
 func main() {
