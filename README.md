@@ -1,4 +1,4 @@
-# openwhisk-client-go
+# incubator-openwhisk-client-go
 
 Temporary holding place for a copy of the go-whisk framework until we're able to properly separate it from OpenWhisk core repo
 
@@ -6,7 +6,7 @@ Temporary holding place for a copy of the go-whisk framework until we're able to
 ### Usage
 
 ```go
-import "github.com/openwhisk/openwhisk-client-go/whisk"
+import "github.com/apache/incubator-openwhisk-client-go/whisk"
 ```
 
 Construct a new whisk client, then use various services to access different parts of the whisk api.  For example to get the `hello` action:
@@ -47,7 +47,7 @@ import (
   "net/http"
   "net/url"
 
-  "github.com/openwhisk/openwhisk-client-go/whisk"
+  "github.com/apache/incubator-openwhisk-client-go/whisk"
 )
 
 func main() {

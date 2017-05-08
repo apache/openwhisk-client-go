@@ -23,7 +23,7 @@ import (
     "strings"
     "errors"
     "net/url"
-    "github.com/openwhisk/openwhisk-client-go/wski18n"
+    "github.com/apache/incubator-openwhisk-client-go/wski18n"
 )
 
 type RuleService struct {

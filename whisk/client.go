@@ -29,7 +29,7 @@ import (
     "crypto/tls"
     "errors"
     "reflect"
-    "github.com/openwhisk/openwhisk-client-go/wski18n"
+    "github.com/apache/incubator-openwhisk-client-go/wski18n"
     "strings"
 )
 

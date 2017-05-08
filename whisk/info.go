@@ -21,7 +21,7 @@ import (
     "net/http"
     "net/url"
     "errors"
-    "github.com/openwhisk/openwhisk-client-go/wski18n"
+    "github.com/apache/incubator-openwhisk-client-go/wski18n"
     "fmt"
 )
 

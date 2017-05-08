@@ -20,7 +20,7 @@ package whisk
 import (
     "net/http"
     "errors"
-    "github.com/openwhisk/openwhisk-client-go/wski18n"
+    "github.com/apache/incubator-openwhisk-client-go/wski18n"
 )
 
 type ApiService struct {
