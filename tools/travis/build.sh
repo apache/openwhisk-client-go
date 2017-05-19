@@ -2,11 +2,10 @@
 set -e
 
 # Build script for Travis-CI.
-
 SCRIPTDIR=$(cd $(dirname "$0") && pwd)
 ROOTDIR="$SCRIPTDIR/../.."
-WHISKDIR="$ROOTDIR/../openwhisk"
+UTIL_DIR="$ROOTDIR/../incubator-openwhisk-utilities"
 
 # run scancode
-cd $WHISKDIR
-tools/build/scanCode.py $ROOTDIR
+cd $UTIL_DIR
+scancode/scanCode.py $ROOTDIR
