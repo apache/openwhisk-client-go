@@ -1,6 +1,8 @@
-# incubator-openwhisk-client-go
+# Openwhisk Client Go
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Build Status](https://travis-ci.org/apache/incubator-openwhisk-client-go.svg?branch=master)](https://travis-ci.org/apache/incubator-openwhisk-client-go)
 
-`go-whisk` is a Go client library for accessing the IBM Whisk API.
+This project `openwhisk-client-go` is a Go client library to access Openwhisk API.
 
 
 ### Usage
