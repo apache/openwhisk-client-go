@@ -5,6 +5,14 @@
 This project `openwhisk-client-go` is a Go client library to access Openwhisk API.
 
 
+# Disclaimer
+
+This project is currently on an experimental stage. We periodically synchronize the source code of this repository with
+the [Go whisk folder](https://github.com/apache/incubator-openwhisk/tree/master/tools/cli/go-whisk) in OpenWhisk. The framework of test cases is under construction
+for this repository. Please contribute to the [Go whisk folder](https://github.com/apache/incubator-openwhisk/tree/master/tools/cli/go-whisk) in OpenWhisk for any Go whisk changes, before we officially announce the separation
+of OpenWhisk CLI from OpenWhisk.
+
+
 ### Usage
 
 ```go
