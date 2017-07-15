@@ -66,12 +66,12 @@ type Client struct {
 }
 
 type Config struct {
-    Namespace 	string // NOTE :: Default is "_"
-    AuthToken 	string
-    Host		string
-    BaseURL   	*url.URL // NOTE :: Default is "openwhisk.ng.bluemix.net"
-    Version   	string
-    Verbose   	bool
+    Namespace     string // NOTE :: Default is "_"
+    AuthToken     string
+    Host        string
+    BaseURL       *url.URL // NOTE :: Default is "openwhisk.ng.bluemix.net"
+    Version       string
+    Verbose       bool
     Debug       bool     // For detailed tracing
     Insecure    bool
 }
