@@ -9,17 +9,13 @@ cd $HOMEDIR
 # Clone the OpenWhisk code
 git clone --depth 3 https://github.com/apache/incubator-openwhisk.git
 
-# Clone the OpenWhisk CLI code
-git clone --depth 3 https://github.com/apache/incubator-openwhisk-cli.git
-
 # Build script for Travis-CI.
 WHISKDIR="$HOMEDIR/incubator-openwhisk"
-OPENWHISK_CLI_BUILD_DIR="$HOMEDIR/incubator-openwhisk-cli"
 
 cd $WHISKDIR
 ./tools/travis/setup.sh
 
-ANSIBLE_CMD="ansible-playbook -i environments/local -e docker_image_prefix=testing"
+ANSIBLE_CMD="ansible-playbook -i environments/local -e docker_image_prefix=openwhisk"
 
 cd $WHISKDIR/ansible
 $ANSIBLE_CMD setup.yml
@@ -27,30 +23,5 @@ $ANSIBLE_CMD prereq.yml
 $ANSIBLE_CMD couchdb.yml
 $ANSIBLE_CMD initdb.yml
 $ANSIBLE_CMD apigateway.yml
-
-cd $WHISKDIR
-GRADLE_PROJS_SKIP="-x :core:pythonAction:distDocker  -x :core:python2Action:distDocker -x :core:swift3Action:distDocker -x :core:javaAction:distDocker"
-TERM=dumb ./gradlew distDocker -PdockerImagePrefix=testing $GRADLE_PROJS_SKIP
-
-cd $WHISKDIR/ansible
 $ANSIBLE_CMD wipe.yml
-$ANSIBLE_CMD openwhisk.yml
-
-# Install the dependencies for openwhisk cli and build the binary based on the current changes.
-cd $OPENWHISK_CLI_BUILD_DIR
-go get -d -t ./...
-go build -ldflags "-X main.CLI_BUILD_TIME=`date -u '+%Y-%m-%dT%H:%M:%S%:z'`" -o wsk
-
-# Copy the binary generated into the OPENWHISK_HOME/bin, so that the test cases will run based on it.
-mkdir -p $WHISKDIR/bin
-cp $OPENWHISK_CLI_BUILD_DIR/wsk $WHISKDIR/bin
-
-# Run the test cases under openwhisk to ensure the quality of the binary.
-cd $OPENWHISK_CLI_BUILD_DIR
-./gradlew :tests:test -Dtest.single=Wsk*Tests*
-sleep 30
-./gradlew tests:test -Dtest.single=*ApiGwRoutemgmtActionTests*
-sleep 30
-./gradlew tests:test -Dtest.single=*ApiGwTests*
-sleep 30
-./gradlew tests:test -Dtest.single=*ApiGwEndToEndTests*
+$ANSIBLE_CMD openwhisk.yml -e '{"openwhisk_cli":{"installation_mode":"remote","remote":{"name":"OpenWhisk_CLI","dest_name":"OpenWhisk_CLI","location":"https://github.com/apache/incubator-openwhisk-cli/releases/download/latest"}}}'
