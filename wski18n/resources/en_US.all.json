@@ -122,5 +122,29 @@
   {
     "id": "The connection failed, or timed out. (HTTP status code {{.code}})",
     "translation": "The connection failed, or timed out. (HTTP status code {{.code}})"
+  },
+  {
+    "id": "OpenWhisk API URL is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)",
+    "translation": "OpenWhisk API URL is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)"
+  },
+  {
+    "id": "OpenWhisk API URL is missing (Please configure whisk.api.host.proto, whisk.api.host.name and whisk.api.host.port in whisk.properties under the OPENWHISK_HOME directory.)",
+    "translation": "OpenWhisk API URL is missing (Please configure whisk.api.host.proto, whisk.api.host.name and whisk.api.host.port in whisk.properties under the OPENWHISK_HOME directory.)"
+  },
+  {
+    "id": "Invalid OpenWhisk API URL (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)",
+    "translation": "Invalid OpenWhisk API URL (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)"
+  },
+  {
+    "id": "Invalid OpenWhisk API URL (Please configure whisk.api.host.proto, whisk.api.host.name and whisk.api.host.port in whisk.properties under the OPENWHISK_HOME directory.)",
+    "translation": "Invalid OpenWhisk API URL (Please configure whisk.api.host.proto, whisk.api.host.name and whisk.api.host.port in whisk.properties under the OPENWHISK_HOME directory.)"
+  },
+  {
+    "id": "Authentication key is missing (Please configure AUTH in .wskprops under the system HOME directory.)",
+    "translation": "Authentication key is missing (Please configure AUTH in .wskprops under the system HOME directory.)"
+  },
+  {
+    "id": "Authentication key is missing (Please configure testing.auth as the path of the authentication key file in whisk.properties under the OPENWHISK_HOME directory.)",
+    "translation": "Authentication key is missing (Please configure testing.auth as the path of the authentication key file in whisk.properties under the OPENWHISK_HOME directory.)"
   }
 ]
