@@ -39,11 +39,9 @@ const (
     OPENWHISK_HOST= "whisk.api.host.name"
     DEFAULT_VERSION = "v1"
     DEFAULT_NAMESPACE = "guest"
-    DEFAULT_API = "api"
 
     NAMESPACE = "NAMESPACE"
     AUTH = "AUTH"
-    WHISK_APIHOST = "WHISK_APIHOST"
     APIGW_ACCESS_TOKEN = "APIGW_ACCESS_TOKEN"
     APIVERSION = "APIVERSION"
     KEY = "KEY"
@@ -56,7 +54,6 @@ const (
 )
 
 type Wskprops struct {
-    WHISKAPIURL string
     APIHost string
     AuthKey string
     Namespace string
@@ -68,23 +65,31 @@ type Wskprops struct {
     Source string
 }
 
-func convertWskpropsToConfig(dep *Wskprops) *Config {
+func GetURLBase(host string) (*url.URL, error) {
+    urlBase := fmt.Sprintf("%s/api", host)
+    url, err := url.Parse(urlBase)
+
+    if len(url.Scheme) == 0 || len(url.Host) == 0 {
+        urlBase = fmt.Sprintf("https://%s/api", host)
+        url, err = url.Parse(urlBase)
+    }
+
+    return url, err
+}
+
+func convertWskpropsToConfig(dep *Wskprops) (*Config) {
     var config Config
-    var err error
-    config.BaseURL, err = url.Parse(dep.WHISKAPIURL)
-    if err != nil {
-        config.BaseURL = nil
+    config.Host = dep.APIHost
+    if len(config.Host) != 0 {
+        v, err := GetURLBase(config.Host)
+        if err == nil {
+            config.BaseURL = v
+        }
     }
     config.Namespace = dep.Namespace
     config.Cert = dep.Cert
     config.Key = dep.Key
     config.AuthToken = dep.AuthKey
-
-    if config.BaseURL != nil {
-        config.Host = config.BaseURL.Host
-    } else {
-        config.Host = ""
-    }
 
     config.Version = dep.Apiversion
     config.Verbose = false
@@ -167,13 +172,8 @@ func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
 
     if err == nil {
 
-        dep.WHISKAPIURL = GetValue(results, WHISK_APIHOST, dep.WHISKAPIURL)
-        baseURL, err := url.Parse(dep.WHISKAPIURL)
-        if err != nil {
-            dep.APIHost = GetValue(results, APIHOST, dep.APIHost)
-        } else {
-            dep.APIHost = baseURL.Host
-        }
+        dep.APIHost = GetValue(results, APIHOST, dep.APIHost)
+
         dep.AuthKey = GetValue(results, AUTH, dep.AuthKey)
         dep.Namespace = GetValue(results, NAMESPACE, dep.Namespace)
         dep.AuthAPIGWKey = GetValue(results, APIGW_ACCESS_TOKEN, dep.AuthAPIGWKey)
@@ -199,17 +199,7 @@ func (pi PropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
         if err == nil {
             dep.AuthKey = strings.TrimSpace(string(b))
         }
-
-        var pro = GetValue(results, OPENWHISK_PRO, "")
-        var port = GetValue(results, OPENWHISK_PORT, "")
-        var host = GetValue(results, OPENWHISK_HOST, "")
-        dep.WHISKAPIURL = fmt.Sprintf("%s://%s:%s/%s", pro, host, port, DEFAULT_API)
-        baseURL, err := url.Parse(dep.WHISKAPIURL)
-        if err != nil {
-            dep.APIHost = fmt.Sprintf("%s:%s", host, port)
-        } else {
-            dep.APIHost = baseURL.Host
-        }
+        dep.APIHost = GetValue(results, OPENWHISK_HOST, "")
         dep.Namespace = DEFAULT_NAMESPACE
         if len(dep.AuthKey) > 0 {
             dep.APIGWSpaceSuid = strings.Split(dep.AuthKey, ":")[0]
@@ -221,23 +211,15 @@ func (pi PropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
 var ValidateWskprops = func (wskprops *Wskprops) error {
     // There are at least two fields: WHISKAPIURL and AuthKey, mandatory for a valid Wskprops.
     errStr := ""
-    if (len(wskprops.WHISKAPIURL) == 0) {
+    if (len(wskprops.APIHost) == 0) {
         if wskprops.Source == WHISK_PROPERTY {
-            errStr = wski18n.T("OpenWhisk API URL is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)")
+            errStr = wski18n.T("OpenWhisk API host is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)")
         } else {
-            errStr = wski18n.T("OpenWhisk API URL is missing (Please configure whisk.api.host.proto, whisk.api.host.name and whisk.api.host.port in whisk.properties under the OPENWHISK_HOME directory.)")
+            errStr = wski18n.T("OpenWhisk API host is missing (Please configure whisk.api.host.proto, whisk.api.host.name and whisk.api.host.port in whisk.properties under the OPENWHISK_HOME directory.)")
         }
         return MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, DISPLAY_USAGE)
     } else {
-        _, err := url.ParseRequestURI(wskprops.WHISKAPIURL)
-        if (err != nil) {
-            if wskprops.Source == WHISK_PROPERTY {
-                errStr = wski18n.T("Invalid OpenWhisk API URL (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)")
-            } else {
-                errStr = wski18n.T("Invalid OpenWhisk API URL (Please configure whisk.api.host.proto, whisk.api.host.name and whisk.api.host.port in whisk.properties under the OPENWHISK_HOME directory.)")
-            }
-            return MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, DISPLAY_USAGE)
-        } else if (len(wskprops.AuthKey) == 0) {
+        if (len(wskprops.AuthKey) == 0) {
             if wskprops.Source == WHISK_PROPERTY {
                 errStr = wski18n.T("Authentication key is missing (Please configure AUTH in .wskprops under the system HOME directory.)")
             } else {
@@ -278,13 +260,14 @@ func GetWhiskPropertiesConfig() (*Config, error) {
     return GetConfigFromWhiskProperties(pi)
 }
 
-func GetPropertiesImp() PropertiesImp {
+func GetProperties() Properties {
     return PropertiesImp{
         OsPackage: OSPackageImp{},
     }
 }
+
 func GetWskpropsConfig(path string) (*Config, error) {
-    pi := GetPropertiesImp()
+    pi := GetProperties()
     return GetConfigFromWskprops(pi, path)
 }
 
@@ -294,7 +277,6 @@ func GetDefaultWskprops(source string) *Wskprops {
     }
 
     dep := Wskprops {
-        WHISKAPIURL: "",
         APIHost: "",
         AuthKey: "",
         Namespace: DEFAULT_NAMESPACE,
