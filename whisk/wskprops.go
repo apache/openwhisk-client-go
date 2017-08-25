@@ -97,9 +97,6 @@ func convertWskpropsToConfig(dep *Wskprops) *Config {
 func GetDefaultConfigFromProperties(pi Properties) (*Config, error) {
     var config *Config
     dep, e := GetDefaultWskProp(pi)
-    if (e != nil) {
-        return config, e
-    }
     config = convertWskpropsToConfig(dep)
     return config, e
 }
@@ -107,9 +104,6 @@ func GetDefaultConfigFromProperties(pi Properties) (*Config, error) {
 func GetConfigFromWhiskProperties(pi Properties) (*Config, error) {
     var config *Config
     dep, e := GetWskPropFromWhiskProperty(pi)
-    if (e != nil) {
-        return config, e
-    }
     config = convertWskpropsToConfig(dep)
     return config, e
 }
@@ -117,9 +111,6 @@ func GetConfigFromWhiskProperties(pi Properties) (*Config, error) {
 func GetConfigFromWskprops(pi Properties, path string) (*Config, error) {
     var config *Config
     dep, e := GetWskPropFromWskprops(pi, path)
-    if (e != nil) {
-        return config, e
-    }
     config = convertWskpropsToConfig(dep)
     return config, e
 }
@@ -160,7 +151,7 @@ type Properties interface {
 }
 
 type PropertiesImp struct {
-    osPackage OSPackage
+    OsPackage OSPackage
 }
 
 func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
@@ -170,7 +161,7 @@ func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
     if path != "" {
         configPath = path
     } else {
-        configPath = pi.osPackage.Getenv(GOPATH, "")
+        configPath = pi.OsPackage.Getenv(GOPATH, "")
     }
     results, err := ReadProps(configPath + "/" + DEFAULT_LOCAL_CONFIG)
 
@@ -199,7 +190,7 @@ func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
 
 func (pi PropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
     dep := GetDefaultWskprops(WHISK_PROPERTY)
-    path := pi.osPackage.Getenv(OPENWHISK_HOME, "") + "/" + OPENWHISK_PROPERTIES
+    path := pi.OsPackage.Getenv(OPENWHISK_HOME, "") + "/" + OPENWHISK_PROPERTIES
     results, err := ReadProps(path)
 
     if err == nil {
@@ -275,22 +266,25 @@ func (osPackage OSPackageImp) Getenv(key string, defaultValue string) string {
 
 func GetDefaultConfig() (*Config, error) {
     pi := PropertiesImp{
-        osPackage: OSPackageImp{},
+        OsPackage: OSPackageImp{},
     }
     return GetDefaultConfigFromProperties(pi)
 }
 
 func GetWhiskPropertiesConfig() (*Config, error) {
     pi := PropertiesImp{
-        osPackage: OSPackageImp{},
+        OsPackage: OSPackageImp{},
     }
     return GetConfigFromWhiskProperties(pi)
 }
 
-func GetWskpropsConfig(path string) (*Config, error) {
-    pi := PropertiesImp{
-        osPackage: OSPackageImp{},
+func GetPropertiesImp() PropertiesImp {
+    return PropertiesImp{
+        OsPackage: OSPackageImp{},
     }
+}
+func GetWskpropsConfig(path string) (*Config, error) {
+    pi := GetPropertiesImp()
     return GetConfigFromWskprops(pi, path)
 }
 
