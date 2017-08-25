@@ -6,7 +6,7 @@ matrix:
     include:
         - os: linux
           sudo: required
-          go: 1.7
+          go: 1.8
           services: docker
 
 git:
@@ -20,11 +20,11 @@ install:
   - export DEPLOY_BUILD_READY=false
   - go get -u github.com/golang/lint/golint
   - go get -u github.com/stretchr/testify
-  - go get -u github.com/spf13/viper
 
 script:
   - ./tools/travis/build.sh
   - export PATH=$PATH:$TRAVIS_BUILD_DIR;
+  - make test
   - if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
       ./tools/travis/test_openwhisk.sh;
     fi

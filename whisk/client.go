@@ -78,7 +78,19 @@ type Config struct {
     Insecure    bool
 }
 
-func NewClient(httpClient *http.Client, config *Config) (*Client, error) {
+func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
+
+    var config *Config
+    if config_input == nil {
+        defaultConfig, err := GetDefaultConfig()
+        if err != nil {
+            return nil ,err
+        } else {
+            config = defaultConfig
+        }
+    } else {
+        config = config_input
+    }
 
     // Disable certificate checking in the dev environment if in insecure mode
     if config.Insecure {
