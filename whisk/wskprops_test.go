@@ -63,9 +63,10 @@ const (
     EXPECTED_CERT_LOCAL_CONF = "EXPECTED_CERT_LOCAL_CONF"
     EXPECTED_KEY_LOCAL_CONF = "EXPECTED_KEY_LOCAL_CONF"
 
-    MISSING_AUTH = "Authentication key is missing"
-    MISSING_URL = "OpenWhisk API URL is missing"
-    INVALID_URL = "Invalid OpenWhisk API URL"
+    MISSING_AUTH__MESSAGE = "Authentication key is missing"
+    MISSING_URL_MESSAGE = "OpenWhisk API URL is missing"
+    INVALID_URL_MESSAGE = "Invalid OpenWhisk API URL"
+    INVALID_URL = "invalid_url"
 )
 
 type FakeOSPackage struct {
@@ -175,8 +176,9 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
         },
     }
     pi := PropertiesImp{
-        osPackage: fakeOSPackage,
+        OsPackage: fakeOSPackage,
     }
+
     dep := pi.GetPropsFromWhiskProperties()
     assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
     assert.Equal(t, "", dep.AuthKey)
@@ -197,7 +199,7 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 
     CreateFile(lines, OPENWHISK_PROPERTIES)
     pi = PropertiesImp{
-        osPackage: fakeOSPackage,
+        OsPackage: fakeOSPackage,
     }
     dep = pi.GetPropsFromWhiskProperties()
     assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
@@ -219,7 +221,7 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
         OPENWHISK_HOST + "=" +  EXPECTED_OPENWHISK_HOST}
     CreateFile(lines, OPENWHISK_PROPERTIES)
     pi = PropertiesImp{
-        osPackage: fakeOSPackage,
+        OsPackage: fakeOSPackage,
     }
     dep = pi.GetPropsFromWhiskProperties()
     assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
@@ -250,7 +252,7 @@ func TestGetPropsFromWskprops(t *testing.T) {
         },
     }
     pi := PropertiesImp{
-        osPackage: fakeOSPackage,
+        OsPackage: fakeOSPackage,
     }
 
     dep := pi.GetPropsFromWskprops("")
@@ -311,7 +313,6 @@ func TestGetDefaultConfigFromProperties(t *testing.T) {
 
     fakeProperties = FakePropertiesImp{
         StoredValues_LOCAL_CONF: map[string]string {
-            APIHOST: EXPECTED_HOST,
             AUTH: EXPECTED_AUTH_API_KEY,
             NAMESPACE: DEFAULT_NAMESPACE,
             APIGW_ACCESS_TOKEN: EXPECTED_AUTH_API_KEY,
@@ -323,12 +324,22 @@ func TestGetDefaultConfigFromProperties(t *testing.T) {
     }
 
     config, err = GetDefaultConfigFromProperties(fakeProperties)
+    assert.Equal(t, DEFAULT_NAMESPACE, config.Namespace)
+    assert.Equal(t, EXPECTED_CERT, config.Cert)
+    assert.Equal(t, EXPECTED_KEY, config.Key)
+    assert.Equal(t, EXPECTED_AUTH_API_KEY, config.AuthToken)
+    assert.Equal(t, "", config.Host)
+    assert.Equal(t, "", config.BaseURL.String())
+    assert.Equal(t, EXPECTED_API_VERSION, config.Version)
+    assert.False(t, config.Verbose)
+    assert.False(t, config.Debug)
+    assert.True(t, config.Insecure)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), "OpenWhisk API URL is missing")
+    assert.Contains(t, err.Error(), MISSING_URL_MESSAGE)
 
     fakeProperties = FakePropertiesImp{
         StoredValues_LOCAL_CONF: map[string]string {
-            WHISK_APIHOST: "invalid_url",
+            WHISK_APIHOST: INVALID_URL,
             APIHOST: EXPECTED_HOST,
             AUTH: EXPECTED_AUTH_API_KEY,
             NAMESPACE: DEFAULT_NAMESPACE,
@@ -341,8 +352,18 @@ func TestGetDefaultConfigFromProperties(t *testing.T) {
     }
 
     config, err = GetDefaultConfigFromProperties(fakeProperties)
+    assert.Equal(t, DEFAULT_NAMESPACE, config.Namespace)
+    assert.Equal(t, EXPECTED_CERT, config.Cert)
+    assert.Equal(t, EXPECTED_KEY, config.Key)
+    assert.Equal(t, EXPECTED_AUTH_API_KEY, config.AuthToken)
+    assert.Equal(t, "", config.Host)
+    assert.Equal(t, INVALID_URL, config.BaseURL.String())
+    assert.Equal(t, EXPECTED_API_VERSION, config.Version)
+    assert.False(t, config.Verbose)
+    assert.False(t, config.Debug)
+    assert.True(t, config.Insecure)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), "Invalid OpenWhisk API URL")
+    assert.Contains(t, err.Error(), INVALID_URL_MESSAGE)
 
     fakeProperties = FakePropertiesImp{
         StoredValues_LOCAL_CONF: map[string]string {
@@ -358,8 +379,18 @@ func TestGetDefaultConfigFromProperties(t *testing.T) {
     }
 
     config, err = GetDefaultConfigFromProperties(fakeProperties)
+    assert.Equal(t, DEFAULT_NAMESPACE, config.Namespace)
+    assert.Equal(t, EXPECTED_CERT, config.Cert)
+    assert.Equal(t, EXPECTED_KEY, config.Key)
+    assert.Equal(t, "", config.AuthToken)
+    assert.Equal(t, EXPECTED_HOST, config.Host)
+    assert.Equal(t, EXPECTED_API_HOST, config.BaseURL.String())
+    assert.Equal(t, EXPECTED_API_VERSION, config.Version)
+    assert.False(t, config.Verbose)
+    assert.False(t, config.Debug)
+    assert.True(t, config.Insecure)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), "Authentication key is missing")
+    assert.Contains(t, err.Error(), MISSING_AUTH__MESSAGE)
 }
 
 func TestGetConfigFromWskprops(t *testing.T) {
@@ -405,7 +436,7 @@ func TestGetConfigFromWskprops(t *testing.T) {
 
     config, err = GetConfigFromWskprops(fakeProperties, "")
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_URL)
+    assert.Contains(t, err.Error(), MISSING_URL_MESSAGE)
 
     fakeProperties = FakePropertiesImp{
         StoredValues_LOCAL_CONF: map[string]string {
@@ -422,7 +453,7 @@ func TestGetConfigFromWskprops(t *testing.T) {
 
     config, err = GetConfigFromWskprops(fakeProperties, "")
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_AUTH)
+    assert.Contains(t, err.Error(), MISSING_AUTH__MESSAGE)
 }
 
 func TestGetConfigFromWhiskProperties(t *testing.T) {
@@ -468,7 +499,7 @@ func TestGetConfigFromWhiskProperties(t *testing.T) {
 
     config, err = GetConfigFromWhiskProperties(fakeProperties)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_URL)
+    assert.Contains(t, err.Error(), MISSING_URL_MESSAGE)
 
     fakeProperties = FakePropertiesImp{
         StoredValues_WHISK: map[string]string {
@@ -485,7 +516,7 @@ func TestGetConfigFromWhiskProperties(t *testing.T) {
 
     config, err = GetConfigFromWhiskProperties(fakeProperties)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_AUTH)
+    assert.Contains(t, err.Error(), MISSING_AUTH__MESSAGE)
 }
 
 func TestValidateWskprops(t *testing.T) {
@@ -501,7 +532,7 @@ func TestValidateWskprops(t *testing.T) {
         Cert: "",
     }
     err := ValidateWskprops(&dep)
-    assert.Contains(t, err.Error(), MISSING_URL)
+    assert.Contains(t, err.Error(), MISSING_URL_MESSAGE)
 
     dep = Wskprops {
         WHISKAPIURL: "invalid_path",
@@ -515,7 +546,7 @@ func TestValidateWskprops(t *testing.T) {
         Cert: "",
     }
     err = ValidateWskprops(&dep)
-    assert.Contains(t, err.Error(), INVALID_URL)
+    assert.Contains(t, err.Error(), INVALID_URL_MESSAGE)
 
     dep = Wskprops {
         WHISKAPIURL: "http://localhost/api",
@@ -529,7 +560,7 @@ func TestValidateWskprops(t *testing.T) {
         Cert: "",
     }
     err = ValidateWskprops(&dep)
-    assert.Contains(t, err.Error(), MISSING_AUTH)
+    assert.Contains(t, err.Error(), MISSING_AUTH__MESSAGE)
 
     dep = Wskprops {
         WHISKAPIURL: "http://localhost/api",
@@ -781,7 +812,7 @@ func TestGetWskPropFromWskprops(t *testing.T) {
     assert.Equal(t, EXPECTED_CERT_LOCAL_CONF, dep.Cert)
     assert.Equal(t, EXPECTED_KEY_LOCAL_CONF, dep.Key)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_URL)
+    assert.Contains(t, err.Error(), MISSING_URL_MESSAGE)
 
     fakeProperties = FakePropertiesImp{
         StoredValues_LOCAL_CONF: missing_auth_local_conf_values,
@@ -797,7 +828,7 @@ func TestGetWskPropFromWskprops(t *testing.T) {
     assert.Equal(t, EXPECTED_CERT_LOCAL_CONF, dep.Cert)
     assert.Equal(t, EXPECTED_KEY_LOCAL_CONF, dep.Key)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_AUTH)
+    assert.Contains(t, err.Error(), MISSING_AUTH__MESSAGE)
 }
 
 func TestGetWskPropFromWhiskProperty(t *testing.T) {
@@ -831,7 +862,7 @@ func TestGetWskPropFromWhiskProperty(t *testing.T) {
     for k,v := range valid_whisk_values {
         invalid_url_whisk_values[k] = v
     }
-    invalid_url_whisk_values[WHISK_APIHOST] = "invalid_url"
+    invalid_url_whisk_values[WHISK_APIHOST] = INVALID_URL
 
     fakeProperties := FakePropertiesImp{
         StoredValues_WHISK: valid_whisk_values,
@@ -864,7 +895,7 @@ func TestGetWskPropFromWhiskProperty(t *testing.T) {
     assert.Equal(t, EXPECTED_CERT_WHISK, dep.Cert)
     assert.Equal(t, EXPECTED_KEY_WHISK, dep.Key)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_AUTH)
+    assert.Contains(t, err.Error(), MISSING_AUTH__MESSAGE)
 
     fakeProperties = FakePropertiesImp{
         StoredValues_WHISK: missing_url_whisk_values,
@@ -881,7 +912,7 @@ func TestGetWskPropFromWhiskProperty(t *testing.T) {
     assert.Equal(t, EXPECTED_CERT_WHISK, dep.Cert)
     assert.Equal(t, EXPECTED_KEY_WHISK, dep.Key)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), MISSING_URL)
+    assert.Contains(t, err.Error(), MISSING_URL_MESSAGE)
 
     fakeProperties = FakePropertiesImp{
         StoredValues_WHISK: invalid_url_whisk_values,
@@ -893,10 +924,10 @@ func TestGetWskPropFromWhiskProperty(t *testing.T) {
     assert.Equal(t, EXPECTED_AUTH_API_KEY_WHISK, dep.AuthAPIGWKey)
     assert.Equal(t, EXPECTED_API_HOST_WHISK, dep.APIHost)
     assert.Equal(t, EXPECTED_API_GW_SPACE_SUID_WHISK, dep.APIGWSpaceSuid)
-    assert.Equal(t, "invalid_url", dep.WHISKAPIURL)
+    assert.Equal(t, INVALID_URL, dep.WHISKAPIURL)
     assert.Equal(t, EXPECTED_API_VERSION_WHISK, dep.Apiversion)
     assert.Equal(t, EXPECTED_CERT_WHISK, dep.Cert)
     assert.Equal(t, EXPECTED_KEY_WHISK, dep.Key)
     assert.NotEqual(t, nil, err)
-    assert.Contains(t, err.Error(), INVALID_URL)
+    assert.Contains(t, err.Error(), INVALID_URL_MESSAGE)
 }
