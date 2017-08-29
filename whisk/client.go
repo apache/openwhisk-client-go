@@ -34,7 +34,6 @@ import (
 )
 
 const (
-    defaultBaseURL = "openwhisk.ng.bluemix.net"
     AuthRequired = true
     NoAuth = false
     IncludeNamespaceInUrl = true
@@ -119,15 +118,21 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
     }
 
     var err error
-    if config.BaseURL == nil {
-        config.BaseURL, err = url.Parse(defaultBaseURL)
+    var errStr = ""
+    if len(config.Host) == 0 {
+        errStr = wski18n.T("Unable to create request URL, because OpenWhisk API host is missing")
+    } else if config.BaseURL == nil {
+        config.BaseURL, err = GetURLBase(config.Host)
         if err != nil {
-            Debug(DbgError, "url.Parse(%s) error: %s\n", defaultBaseURL, err)
-            errStr := wski18n.T("Unable to create request URL '{{.url}}': {{.err}}",
-                map[string]interface{}{"url": defaultBaseURL, "err": err})
-            werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
-            return nil, werr
+            Debug(DbgError, "Unable to create request URL, because the api host %s is invalid\n", config.Host, err)
+            errStr = wski18n.T("Unable to create request URL, because the api host '{{.host}}' is invalid: {{.err}}",
+                map[string]interface{}{"host": config.Host, "err": err})
         }
+    }
+
+    if len(errStr) != 0 {
+        werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+        return nil, werr
     }
 
     if len(config.Namespace) == 0 {

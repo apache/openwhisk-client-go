@@ -124,6 +124,14 @@
     "translation": "The connection failed, or timed out. (HTTP status code {{.code}})"
   },
   {
+    "id": "Unable to create request URL, because OpenWhisk API host is missing",
+    "translation": "Unable to create request URL, because OpenWhisk API host is missing"
+  },
+  {
+    "id": "Unable to create request URL, because the api host '{{.host}}' is invalid: {{.err}}",
+    "translation": "Unable to create request URL, because the api host '{{.host}}' is invalid: {{.err}}"
+  },
+  {
     "id": "OpenWhisk API host is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)",
     "translation": "OpenWhisk API host is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)"
   },
