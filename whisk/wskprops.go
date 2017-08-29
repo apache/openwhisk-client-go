@@ -30,7 +30,7 @@ import (
 
 const (
     OPENWHISK_HOME = "OPENWHISK_HOME"
-    GOPATH = "GOPATH"
+    HOMEPATH = "HOME"
     DEFAULT_LOCAL_CONFIG = ".wskprops"
     OPENWHISK_PROPERTIES = "whisk.properties"
     TEST_AUTH_FILE = "testing.auth"
@@ -48,8 +48,8 @@ const (
     CERT = "CERT"
     APIHOST = "APIHOST"
 
-    DEFAULT_SOURCE = ".wskprops"
-    WSKPROP = ".wskprops"
+    DEFAULT_SOURCE = "wsk props"
+    WSKPROP = "wsk props"
     WHISK_PROPERTY = "whisk.properties"
 )
 
@@ -162,13 +162,13 @@ type PropertiesImp struct {
 func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
     dep := GetDefaultWskprops(WSKPROP)
 
-    var configPath string
+    var wskpropsPath string
     if path != "" {
-        configPath = path
+        wskpropsPath = path
     } else {
-        configPath = pi.OsPackage.Getenv(GOPATH, "")
+        wskpropsPath = pi.OsPackage.Getenv(HOMEPATH, "") + "/" + DEFAULT_LOCAL_CONFIG
     }
-    results, err := ReadProps(configPath + "/" + DEFAULT_LOCAL_CONFIG)
+    results, err := ReadProps(wskpropsPath)
 
     if err == nil {
 

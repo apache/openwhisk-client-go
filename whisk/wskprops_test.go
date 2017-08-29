@@ -1,4 +1,4 @@
-// +build unit
+//// +build unit
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -239,7 +239,7 @@ func TestGetPropsFromWskprops(t *testing.T) {
 
     fakeOSPackage := FakeOSPackage{
         StoredValues: map[string]string {
-            GOPATH: getCurrentDir(),
+            HOMEPATH: getCurrentDir(),
         },
     }
     pi := PropertiesImp{
@@ -257,7 +257,7 @@ func TestGetPropsFromWskprops(t *testing.T) {
     assert.Equal(t, EXPECTED_CERT, dep.Cert)
     assert.Equal(t, WSKPROP, dep.Source)
 
-    path := getCurrentDir()
+    path := getCurrentDir() + "/" + DEFAULT_LOCAL_CONFIG
     dep = pi.GetPropsFromWskprops(path)
     assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
     assert.Equal(t, EXPECTED_TEST_AUTH_KEY, dep.AuthKey)
