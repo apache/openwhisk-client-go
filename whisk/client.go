@@ -31,6 +31,7 @@ import (
     "reflect"
     "github.com/apache/incubator-openwhisk-client-go/wski18n"
     "strings"
+    "time"
 )
 
 const (
@@ -46,6 +47,7 @@ const (
     DoNotProcessTimeOut = false
     ExitWithErrorOnTimeout = true
     ExitWithSuccessOnTimeout = false
+    DEFAULT_HTTP_TIMEOUT = 30
 )
 
 type Client struct {
@@ -91,6 +93,12 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
         config = config_input
     }
 
+    if httpClient == nil {
+        httpClient = &http.Client{
+            Timeout: time.Second * DEFAULT_HTTP_TIMEOUT,
+        }
+    }
+
     // Disable certificate checking in the dev environment if in insecure mode
     if config.Insecure {
         Debug(DbgInfo, "Disabling certificate checking.\n")
@@ -108,13 +116,9 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
             }
         }
 
-        http.DefaultClient.Transport = &http.Transport{
+        httpClient.Transport = &http.Transport{
             TLSClientConfig: tlsConfig,
         }
-    }
-
-    if httpClient == nil {
-        httpClient = http.DefaultClient
     }
 
     var err error
