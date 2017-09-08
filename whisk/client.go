@@ -77,6 +77,7 @@ type Config struct {
     Verbose   	bool
     Debug       bool     // For detailed tracing
     Insecure    bool
+    UserAgent   string
 }
 
 func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
@@ -145,6 +146,10 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
 
     if len(config.Version) == 0 {
         config.Version = "v1"
+    }
+
+    if len(config.UserAgent) == 0 {
+        config.UserAgent = "OpenWhisk-Go-Client"
     }
 
     c := &Client{
@@ -224,6 +229,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}, includeName
         werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
     }
+
+    req.Header.Add("User-Agent", c.Config.UserAgent)
 
     return req, nil
 }
@@ -672,6 +679,8 @@ func (c *Client) NewRequestUrl(
     } else {
         Debug(DbgInfo, "No auth header required\n")
     }
+
+    req.Header.Add("User-Agent", c.Config.UserAgent)
 
     return req, nil
 }
