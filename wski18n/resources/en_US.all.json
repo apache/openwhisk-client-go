@@ -48,6 +48,14 @@
     "translation": "Authorization key is not configured (--auth is required)"
   },
   {
+    "id": "An API host must be provided.\n",
+    "translation": "An API host must be provided.\n"
+  },
+  {
+    "id": "Unable to add route options '{{.options}}'",
+    "translation": "Unable to add route options: {{.options}}"
+  },
+  {
     "id": "Command failed due to an HTTP failure",
     "translation": "Command failed due to an HTTP failure"
   },

@@ -65,7 +65,7 @@ type Wskprops struct {
     Source string
 }
 
-func GetURLBase(host string) (*url.URL, error) {
+func GetUrlBase(host string) (*url.URL, error) {
     urlBase := fmt.Sprintf("%s/api", host)
     url, err := url.Parse(urlBase)
 
@@ -81,7 +81,7 @@ func convertWskpropsToConfig(dep *Wskprops) (*Config) {
     var config Config
     config.Host = dep.APIHost
     if len(config.Host) != 0 {
-        v, err := GetURLBase(config.Host)
+        v, err := GetUrlBase(config.Host)
         if err == nil {
             config.BaseURL = v
         }

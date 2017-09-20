@@ -127,7 +127,7 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
     if len(config.Host) == 0 {
         errStr = wski18n.T("Unable to create request URL, because OpenWhisk API host is missing")
     } else if config.BaseURL == nil {
-        config.BaseURL, err = GetURLBase(config.Host)
+        config.BaseURL, err = GetUrlBase(config.Host)
         if err != nil {
             Debug(DbgError, "Unable to create request URL, because the api host %s is invalid\n", config.Host, err)
             errStr = wski18n.T("Unable to create request URL, because the api host '{{.host}}' is invalid: {{.err}}",
