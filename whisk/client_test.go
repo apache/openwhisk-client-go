@@ -25,6 +25,7 @@ import (
     "net/http"
     "fmt"
     "net/url"
+    "crypto/tls"
 )
 
 const (
@@ -36,18 +37,20 @@ const (
     FakeAuthKey = "dhajfhshfs:hjhfsjfdjfjsgfjs"
 )
 
-func GetValidConfigTest() *Config {
+func GetValidConfigTest(insecure bool) *Config {
     var config Config
     config.Host = FakeHost
     config.Namespace = FakeNamespace
     config.AuthToken = FakeAuthKey
+    config.Insecure = insecure
     return &config
 }
 
-func GetInvalidConfigMissingApiHostTest() *Config {
+func GetInvalidConfigMissingApiHostTest(insecure bool) *Config {
     var config Config
     config.Namespace = FakeNamespace
     config.AuthToken = FakeAuthKey
+    config.Insecure = insecure
     return &config
 }
 
@@ -60,19 +63,20 @@ func GetInvalidConfigMissingApiHostWithBaseURLTest() *Config {
     return &config
 }
 
-func GetValidConfigDiffApiHostAndBaseURLTest() *Config {
+func GetValidConfigDiffApiHostAndBaseURLTest(insecure bool) *Config {
     var config Config
     urlBase := fmt.Sprintf("https://%s/api", FakeHostDiff)
     config.BaseURL, _ = url.Parse(urlBase)
     config.Host = FakeHost
     config.Namespace = FakeNamespace
     config.AuthToken = FakeAuthKey
+    config.Insecure = insecure
     return &config
 }
 
-func TestNewClient(t *testing.T) {
+func TestNewClientDisablingCertificate(t *testing.T) {
     // Test the use case to pass a valid config.
-    config := GetValidConfigTest()
+    config := GetValidConfigTest(true)
     client, err := NewClient(http.DefaultClient, config)
     assert.Nil(t, err)
     assert.NotNil(t, client)
@@ -82,7 +86,7 @@ func TestNewClient(t *testing.T) {
     assert.Equal(t, FakeAuthKey, client.Config.AuthToken)
 
     // Test the use case to pass an invalid config with a missing api host.
-    config = GetInvalidConfigMissingApiHostTest()
+    config = GetInvalidConfigMissingApiHostTest(true)
     client, err = NewClient(http.DefaultClient, config)
     assert.NotNil(t, err)
     assert.Contains(t, err.Error(), "Unable to create request URL, because OpenWhisk API host is missing")
@@ -96,7 +100,7 @@ func TestNewClient(t *testing.T) {
     assert.Nil(t, client)
 
     // Test the use case to pass a valid config with both the base and api host of different values.
-    config = GetValidConfigDiffApiHostAndBaseURLTest()
+    config = GetValidConfigDiffApiHostAndBaseURLTest(true)
     client, err = NewClient(http.DefaultClient, config)
     assert.Nil(t, err)
     assert.NotNil(t, client)
@@ -104,4 +108,45 @@ func TestNewClient(t *testing.T) {
     assert.Equal(t, FakeHost, client.Config.Host)
     assert.Equal(t, FakeBaseURLDiff, client.Config.BaseURL.String())
     assert.Equal(t, FakeAuthKey, client.Config.AuthToken)
+}
+
+func TestNewClientEnablingCertificate(t *testing.T) {
+    TEST_KEY_FILE := "TEST_KEY_FILE"
+    TEST_CERT_FILE := "TEST_CERT_FILE"
+
+    // Test the use case to pass a config in secure mode missing the cert and key files.
+    config := GetValidConfigTest(false)
+    _, err := NewClient(http.DefaultClient, config)
+    assert.NotNil(t, err)
+
+    // Test the use case to pass a config in secure mode with non-existing the cert and key files.
+    config = GetValidConfigTest(false)
+    config.Key = TEST_KEY_FILE
+    config.Cert = TEST_CERT_FILE
+    _, err = NewClient(http.DefaultClient, config)
+    assert.NotNil(t, err)
+
+    // Test the use case to pass a config in secure mode with invalid the cert and key files.
+    CreateFile([]string{ "testKey" }, TEST_KEY_FILE)
+    CreateFile([]string{ "testCert" }, TEST_CERT_FILE)
+    config = GetValidConfigTest(false)
+    config.Key = TEST_KEY_FILE
+    config.Cert = TEST_CERT_FILE
+    _, err = NewClient(http.DefaultClient, config)
+    assert.NotNil(t, err)
+
+    // Test the use case to pass a config in secure mode with valid the cert and key files.
+    oldReadX509KeyPair := ReadX509KeyPair
+    defer func () { ReadX509KeyPair = oldReadX509KeyPair }()
+    ReadX509KeyPair = func(certFile, keyFile string) (tls.Certificate, error) {
+        cert := tls.Certificate{}
+        return cert, nil
+    }
+    config = GetValidConfigTest(false)
+    config.Key = TEST_KEY_FILE
+    config.Cert = TEST_CERT_FILE
+    _, err = NewClient(http.DefaultClient, config)
+    assert.Nil(t, err)
+    DeleteFile(TEST_KEY_FILE)
+    DeleteFile(TEST_CERT_FILE)
 }
