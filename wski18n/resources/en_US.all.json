@@ -140,14 +140,6 @@
     "translation": "Unable to create request URL, because the api host '{{.host}}' is invalid: {{.err}}"
   },
   {
-    "id": "Unable to enable the certificate checking due to the reason: {{.err}}.\n",
-    "translation": "Unable to enable the certificate checking due to the reason: {{.err}}.\n"
-  },
-  {
-    "id": "Unable to enable the certificate checking, because both of the certificate and the key are missing.\n",
-    "translation": "Unable to enable the certificate checking, because both of the certificate and the key are missing.\n"
-  },
-  {
     "id": "OpenWhisk API host is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)",
     "translation": "OpenWhisk API host is missing (Please configure WHISK_APIHOST in .wskprops under the system HOME directory.)"
   },
