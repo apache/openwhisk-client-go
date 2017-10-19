@@ -113,28 +113,6 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
         }
     }
 
-    // Disable certificate checking in the dev environment if in insecure mode
-    if config.Insecure {
-        Debug(DbgInfo, "Disabling certificate checking.\n")
-        var tlsConfig *tls.Config
-        if config.Cert != "" && config.Key != "" {
-            if cert, err := tls.LoadX509KeyPair(config.Cert, config.Key); err == nil {
-                tlsConfig = &tls.Config{
-                    Certificates: []tls.Certificate{cert},
-                    InsecureSkipVerify: true,
-                }
-            }
-        }else{
-            tlsConfig = &tls.Config{
-                InsecureSkipVerify: true,
-            }
-        }
-
-        httpClient.Transport = &http.Transport{
-            TLSClientConfig: tlsConfig,
-        }
-    }
-
     var err error
     var errStr = ""
     if len(config.Host) == 0 {
@@ -151,6 +129,43 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
     if len(errStr) != 0 {
         werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
         return nil, werr
+    }
+
+    var tlsConfig *tls.Config
+    // Disable certificate checking in the environment for insecure mode
+    if config.Insecure {
+        Debug(DbgInfo, "Disabling certificate checking.\n")
+        tlsConfig = &tls.Config{
+            InsecureSkipVerify: true,
+        }
+        if config.Cert != "" && config.Key != "" {
+            if cert, err := ReadX509KeyPair(config.Cert, config.Key); err == nil {
+                tlsConfig = &tls.Config{
+                    Certificates: []tls.Certificate{cert},
+                    InsecureSkipVerify: true,
+                }
+            }
+        }
+    } else {
+        // Enable certificate checking in the environment for secure mode
+        if config.Cert != "" && config.Key != "" {
+            if cert, err := ReadX509KeyPair(config.Cert, config.Key); err == nil {
+                tlsConfig = &tls.Config{
+                    Certificates: []tls.Certificate{cert},
+                }
+            } else {
+                errStr = wski18n.T("Unable to enable the certificate checking due to the reason: {{.err}}.\n",
+                    map[string]interface{}{ "err": err })
+            }
+        }
+        if len(errStr) != 0 {
+            werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            return nil, werr
+        }
+    }
+
+    httpClient.Transport = &http.Transport{
+        TLSClientConfig: tlsConfig,
     }
 
     if len(config.Namespace) == 0 {
@@ -181,6 +196,10 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
     c.Apis = &ApiService{client: c}
 
     return c, nil
+}
+
+var ReadX509KeyPair = func(certFile, keyFile string) (tls.Certificate, error) {
+    return tls.LoadX509KeyPair(certFile, keyFile)
 }
 
 ///////////////////////////////

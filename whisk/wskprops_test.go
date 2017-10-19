@@ -1,4 +1,4 @@
-//// +build unit
+// +build unit
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,8 +23,6 @@ import (
     "testing"
     "github.com/stretchr/testify/assert"
     "os"
-    "fmt"
-    "bufio"
 )
 
 const (
@@ -140,24 +138,6 @@ func (pi FakePropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
         Apiversion: pi.StoredValues_WHISK[APIVERSION],
     }
     return &dep
-}
-
-func CreateFile(lines []string, path string) error {
-    file, err := os.Create(path)
-    if err != nil {
-        return err
-    }
-    defer file.Close()
-
-    w := bufio.NewWriter(file)
-    for _, line := range lines {
-        fmt.Fprintln(w, line)
-    }
-    return w.Flush()
-}
-
-func DeleteFile(path string) error {
-    return os.Remove(path)
 }
 
 func TestGetPropsFromWhiskProperties(t *testing.T) {
