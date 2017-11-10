@@ -154,5 +154,17 @@
   {
     "id": "Authentication key is missing (Please configure testing.auth as the path of the authentication key file in whisk.properties under the OPENWHISK_HOME directory.)",
     "translation": "Authentication key is missing (Please configure testing.auth as the path of the authentication key file in whisk.properties under the OPENWHISK_HOME directory.)"
+  },
+  {
+    "id": "Unable to load the X509 key pair due to the following reason: {{.err}}",
+    "translation": "Unable to load the X509 key pair due to the following reason: {{.err}}"
+  },
+  {
+    "id": "The Cert file is not configured. Please configure the missing Cert file.\n",
+    "translation": "The Cert file is not configured. Please configure the missing Cert file.\n"
+  },
+  {
+    "id": "The Key file is not configured. Please configure the missing Key file.\n",
+    "translation": "The Key file is not configured. Please configure the missing Key file.\n"
   }
 ]
