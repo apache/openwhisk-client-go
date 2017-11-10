@@ -113,28 +113,6 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
         }
     }
 
-    // Disable certificate checking in the dev environment if in insecure mode
-    if config.Insecure {
-        Debug(DbgInfo, "Disabling certificate checking.\n")
-        var tlsConfig *tls.Config
-        if config.Cert != "" && config.Key != "" {
-            if cert, err := tls.LoadX509KeyPair(config.Cert, config.Key); err == nil {
-                tlsConfig = &tls.Config{
-                    Certificates: []tls.Certificate{cert},
-                    InsecureSkipVerify: true,
-                }
-            }
-        }else{
-            tlsConfig = &tls.Config{
-                InsecureSkipVerify: true,
-            }
-        }
-
-        httpClient.Transport = &http.Transport{
-            TLSClientConfig: tlsConfig,
-        }
-    }
-
     var err error
     var errStr = ""
     if len(config.Host) == 0 {
@@ -183,11 +161,62 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
     return c, nil
 }
 
+func (c *Client) LoadX509KeyPair() error {
+    tlsConfig := &tls.Config {
+        InsecureSkipVerify: c.Config.Insecure,
+    }
+
+    if c.Config.Cert != "" && c.Config.Key != "" {
+        if cert, err := ReadX509KeyPair(c.Config.Cert, c.Config.Key); err == nil {
+            tlsConfig.Certificates = []tls.Certificate{cert}
+        } else {
+            errStr := wski18n.T("Unable to load the X509 key pair due to the following reason: {{.err}}",
+                map[string]interface{}{"err": err})
+            werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            return werr
+        }
+    } else if !c.Config.Insecure {
+    	if c.Config.Cert == "" {
+    	    warningStr := "The Cert file is not configured. Please configure the missing Cert file, if there is a security issue accessing the service.\n"
+            Debug(DbgWarn, warningStr)
+            if c.Config.Key != "" {
+                errStr := wski18n.T("The Cert file is not configured. Please configure the missing Cert file.\n")
+                werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+                return werr
+            }
+        }
+    	if c.Config.Key == "" {
+    	    warningStr := "The Key file is not configured. Please configure the missing Key file, if there is a security issue accessing the service.\n"
+            Debug(DbgWarn, warningStr)
+            if c.Config.Cert != "" {
+                errStr := wski18n.T("The Key file is not configured. Please configure the missing Key file.\n")
+                werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+                return werr
+            }
+        }
+    }
+
+    c.client.Transport = &http.Transport{
+        TLSClientConfig: tlsConfig,
+    }
+
+    return nil
+}
+
+var ReadX509KeyPair = func(certFile, keyFile string) (tls.Certificate, error) {
+    return tls.LoadX509KeyPair(certFile, keyFile)
+}
+
 ///////////////////////////////
 // Request/Utility Functions //
 ///////////////////////////////
 
 func (c *Client) NewRequest(method, urlStr string, body interface{}, includeNamespaceInUrl bool) (*http.Request, error) {
+    werr := c.LoadX509KeyPair()
+    if werr != nil {
+        return nil, werr
+    }
+
     if (includeNamespaceInUrl) {
         if c.Config.Namespace != "" {
             urlStr = fmt.Sprintf("%s/namespaces/%s/%s", c.Config.Version, c.Config.Namespace, urlStr)
@@ -629,6 +658,10 @@ func (c *Client) NewRequestUrl(
         useAuthentication bool) (*http.Request, error) {
     var requestUrl *url.URL
     var err error
+    error := c.LoadX509KeyPair()
+    if error != nil {
+        return nil, error
+    }
 
     if (appendOpenWhiskPath) {
         var urlVerNamespaceStr string
