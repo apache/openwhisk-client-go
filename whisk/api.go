@@ -71,12 +71,12 @@ type Api struct {
     GatewayFullPath string    `json:"gatewayFullPath,omitempty"`
     Swagger         string    `json:"swagger,omitempty"`
     Action          *ApiAction `json:"action,omitempty"`
-    PathParameters   []ApiPathParameter `json:"pathParameters,omitempty"`
+    PathParameters   []ApiParameter `json:"pathParameters,omitempty"`
 }
 
-type ApiPathParameter struct {
-    Name              string      `json:"name,omitempty"`
-    In                string      `json:"in,omitempty"`
+type ApiParameter struct {
+    Name              string      `json:"name"`
+    In                string      `json:"in"`
     Description       string      `json:"description,omitempty"`
     Required          bool        `json:"required,omitempty"`
     Type              string      `json:"type,omitempty"`
@@ -160,7 +160,7 @@ type ApiSwaggerInfo struct {
 
 type ApiSwaggerOperation struct {
     OperationId     string              `json:"operationId"`
-    Parameters      []ApiPathParameter  `json:"parameters,omitempty"`
+    Parameters      []ApiParameter  `json:"parameters,omitempty"`
     Responses       interface{}         `json:"responses"`
     XOpenWhisk      *ApiSwaggerOpXOpenWhisk `json:"x-openwhisk,omitempty"`
 }
