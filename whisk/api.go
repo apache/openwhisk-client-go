@@ -71,6 +71,32 @@ type Api struct {
     GatewayFullPath string    `json:"gatewayFullPath,omitempty"`
     Swagger         string    `json:"swagger,omitempty"`
     Action          *ApiAction `json:"action,omitempty"`
+    PathParameters   []ApiPathParameter `json:"pathParameters,omitempty"`
+}
+
+type ApiPathParameter struct {
+    Name              string      `json:"name,omitempty"`
+    In                string      `json:"in,omitempty"`
+    Description       string      `json:"description,omitempty"`
+    Required          bool        `json:"required,omitempty"`
+    Type              string      `json:"type,omitempty"`
+    Format            string      `json:"format,omitempty"`
+    AllowEmptyValue   bool        `json:"allowEmptyValue,omitempty"`
+    Items             map[string]interface{}    `json:"items,omitempty"`
+    CollectionFormat  string      `json:"collectionFormat,omitempty"`
+    Default           interface{} `json:"default,omitempty"`
+    Maximum           int         `json:"maximum,omitempty"`
+    ExclusiveMaximum  bool        `json:"exclusiveMaximum,omitempty"`
+    Minimum           int         `json:"minimum,omitempty"`
+    ExclusiveMinimum  bool        `json:"exclusiveMinimum,omitempty"`
+    MaxLength         int         `json:"maxLength,omitempty"`
+    MinLength         int         `json:"minLength,omitempty"`
+    Pattern           string      `json:"pattern,omitempty"`
+    MaxItems          int         `json:"maxItems,omitempty"`
+    MinItems          int         `json:"minItems,omitempty"`
+    UniqueItems       bool        `json:"uniqueItems,omitempty"`
+    MultipleOf        int         `json:"multipleOf,omitempty"`
+    Enum              interface{} `json:"enum,omitempty"`
 }
 
 type ApiAction struct {
@@ -132,8 +158,9 @@ type ApiSwaggerInfo struct {
 }
 
 type ApiSwaggerOperation struct {
-    OperationId     string    `json:"operationId"`
-    Responses       interface{} `json:"responses"`
+    OperationId     string              `json:"operationId"`
+    Parameters      []ApiPathParameter  `json:"parameters,omitempty"`
+    Responses       interface{}         `json:"responses"`
     XOpenWhisk      *ApiSwaggerOpXOpenWhisk `json:"x-openwhisk,omitempty"`
 }
 
