@@ -97,6 +97,7 @@ type ApiPathParameter struct {
     UniqueItems       bool        `json:"uniqueItems,omitempty"`
     MultipleOf        int         `json:"multipleOf,omitempty"`
     Enum              interface{} `json:"enum,omitempty"`
+    Ref               string      `json:"$ref,omitempty"`
 }
 
 type ApiAction struct {
