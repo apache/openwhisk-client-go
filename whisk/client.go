@@ -33,6 +33,7 @@ import (
     "strings"
     "time"
     "regexp"
+    "strconv"
 )
 
 const (
@@ -49,6 +50,8 @@ const (
     ExitWithErrorOnTimeout = true
     ExitWithSuccessOnTimeout = false
     DEFAULT_HTTP_TIMEOUT = 30
+    DEFAULT_ATTEMPTS = 5
+    DEFAULT_INTERVAL = 2 * time.Second
 )
 
 type Client struct {
@@ -316,98 +319,118 @@ func BodyTruncator(body io.ReadCloser) (string, io.ReadCloser, error) {
     return string(data), reload, nil
 }
 
+func retry(attempts int, sleep time.Duration, callback func() (*http.Response, error)) (*http.Response, error)  {
+    var err error
+    var resp *http.Response
+    for i := 0; ; i++ {
+        resp, err = callback()
+        if err == nil {
+            return resp, err
+        }
+        if i >= (attempts - 1) {
+            break
+        }
+        time.Sleep(sleep)
+        Debug(DbgError, "Retrying [%s] after error: %s\n", strconv.Itoa(i + 1), err)
+    }
+    return resp, err
+}
+
 // Do sends an API request and returns the API response.  The API response is
 // JSON decoded and stored in the value pointed to by v, or returned as an
 // error if an API error has occurred.  If v implements the io.Writer
 // interface, the raw response body will be written to v, without attempting to
 // first decode it.
-func (c *Client) Do(req *http.Request, v interface{}, ExitWithErrorOnTimeout bool, secretToObfuscate ...ObfuscateSet) (*http.Response, error) {
-    var err error
-    var data []byte
-    secrets := append(DefaultObfuscateArr, secretToObfuscate...)
+func (c *Client) Do(reqInput *http.Request, v interface{}, ExitWithErrorOnTimeout bool, secretToObfuscate ...ObfuscateSet) (*http.Response, error) {
+    return retry(DEFAULT_ATTEMPTS, DEFAULT_INTERVAL, func() (*http.Response, error) {
+        var err error
+        var data []byte
+        var req *http.Request
+        secrets := append(DefaultObfuscateArr, secretToObfuscate...)
 
-    req, err = PrintRequestInfo(req, secrets...)
-    //Putting this based on previous code
-    if err != nil {
-        return nil, err
-    }
-
-    // Issue the request to the Whisk server endpoint
-    resp, err := c.client.Do(req)
-    if err != nil {
-        Debug(DbgError, "HTTP Do() [req %s] error: %s\n", req.URL.String(), err)
-        werr := MakeWskError(err, EXIT_CODE_ERR_NETWORK, DISPLAY_MSG, NO_DISPLAY_USAGE)
-        return nil, werr
-    }
-
-    resp, data, err = PrintResponseInfo(resp, secrets...)
-    if err != nil {
-        return resp, err
-    }
-
-    // With the HTTP response status code and the HTTP body contents,
-    // the possible response scenarios are:
-    //
-    // 0. HTTP Success + Body indicating a whisk failure result
-    // 1. HTTP Success + Valid body matching request expectations
-    // 2. HTTP Success + No body expected
-    // 3. HTTP Success + Body does NOT match request expectations
-    // 4. HTTP Failure + No body
-    // 5. HTTP Failure + Body matching error format expectation
-    // 6. HTTP Failure + Body NOT matching error format expectation
-
-    // Handle 4. HTTP Failure + No body
-    // If this happens, just return no data and an error
-    if !IsHttpRespSuccess(resp) && data == nil {
-        Debug(DbgError, "HTTP failure %d + no body\n", resp.StatusCode)
-        werr := MakeWskError(errors.New(wski18n.T("Command failed due to an HTTP failure")), resp.StatusCode-256,
-            DISPLAY_MSG, NO_DISPLAY_USAGE)
-        return resp, werr
-    }
-
-    // Handle 5. HTTP Failure + Body matching error format expectation, or body matching a whisk.error() response
-    // Handle 6. HTTP Failure + Body NOT matching error format expectation
-    if !IsHttpRespSuccess(resp) && data != nil {
-        return parseErrorResponse(resp, data, v)
-    }
-
-    // Handle 0. HTTP Success + Body indicating a whisk failure result
-    //   NOTE: Need to ignore activation records send in response to 'wsk get activation NNN` as
-    //         these will report the same original error giving the appearance that the command failed.
-    if (IsHttpRespSuccess(resp) &&                                      // HTTP Status == 200
-        data!=nil &&                                                    // HTTP response body exists
-        v != nil &&
-        !strings.Contains(reflect.TypeOf(v).String(), "Activation") &&  // Request is not `wsk activation get`
-        !IsResponseResultSuccess(data)) {                               // HTTP response body has Whisk error result
-        Debug(DbgInfo, "Got successful HTTP; but activation response reports an error\n")
-        return parseErrorResponse(resp, data, v)
-    }
-
-    // Handle 2. HTTP Success + No body expected
-    if IsHttpRespSuccess(resp) && v == nil {
-        Debug(DbgInfo, "No interface provided; no HTTP response body expected\n")
-        return resp, nil
-    }
-
-    // Handle 1. HTTP Success + Valid body matching request expectations
-    // Handle 3. HTTP Success + Body does NOT match request expectations
-    if IsHttpRespSuccess(resp) && v != nil {
-
-        // If a timeout occurs, 202 HTTP status code is returned, and the caller wishes to handle such an event, return
-        // an error corresponding with the timeout
-        if ExitWithErrorOnTimeout && resp.StatusCode == EXIT_CODE_TIMED_OUT {
-            errMsg :=  wski18n.T("Request accepted, but processing not completed yet.")
-            err = MakeWskError(errors.New(errMsg), EXIT_CODE_TIMED_OUT, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
-                NO_MSG_DISPLAYED, NO_DISPLAY_PREFIX, NO_APPLICATION_ERR, TIMED_OUT)
+        req, err = PrintRequestInfo(reqInput, secrets...)
+        //Putting this based on previous code
+        if err != nil {
+            return nil, err
         }
 
-        return parseSuccessResponse(resp, data, v), err
-    }
+        // Issue the request to the Whisk server endpoint
+        resp, err := c.client.Do(req)
+        if err != nil {
+            Debug(DbgError, "HTTP Do() [req %s] error: %s\n", req.URL.String(), err)
+            werr := MakeWskError(err, EXIT_CODE_ERR_NETWORK, DISPLAY_MSG, NO_DISPLAY_USAGE)
+            return nil, werr
+        }
 
-    // We should never get here, but just in case return failure to keep the compiler happy
-    werr := MakeWskError(errors.New(wski18n.T("Command failed due to an internal failure")), EXIT_CODE_ERR_GENERAL,
-        DISPLAY_MSG, NO_DISPLAY_USAGE)
-    return resp, werr
+        resp, data, err = PrintResponseInfo(resp, secrets...)
+        if err != nil {
+            return resp, err
+        }
+
+        // With the HTTP response status code and the HTTP body contents,
+        // the possible response scenarios are:
+        //
+        // 0. HTTP Success + Body indicating a whisk failure result
+        // 1. HTTP Success + Valid body matching request expectations
+        // 2. HTTP Success + No body expected
+        // 3. HTTP Success + Body does NOT match request expectations
+        // 4. HTTP Failure + No body
+        // 5. HTTP Failure + Body matching error format expectation
+        // 6. HTTP Failure + Body NOT matching error format expectation
+
+        // Handle 4. HTTP Failure + No body
+        // If this happens, just return no data and an error
+        if !IsHttpRespSuccess(resp) && data == nil {
+            Debug(DbgError, "HTTP failure %d + no body\n", resp.StatusCode)
+            werr := MakeWskError(errors.New(wski18n.T("Command failed due to an HTTP failure")), resp.StatusCode-256,
+                DISPLAY_MSG, NO_DISPLAY_USAGE)
+            return resp, werr
+        }
+
+        // Handle 5. HTTP Failure + Body matching error format expectation, or body matching a whisk.error() response
+        // Handle 6. HTTP Failure + Body NOT matching error format expectation
+        if !IsHttpRespSuccess(resp) && data != nil {
+            return parseErrorResponse(resp, data, v)
+        }
+
+        // Handle 0. HTTP Success + Body indicating a whisk failure result
+        //   NOTE: Need to ignore activation records send in response to 'wsk get activation NNN` as
+        //         these will report the same original error giving the appearance that the command failed.
+        if (IsHttpRespSuccess(resp) &&                                      // HTTP Status == 200
+            data!=nil &&                                                    // HTTP response body exists
+            v != nil &&
+            !strings.Contains(reflect.TypeOf(v).String(), "Activation") &&  // Request is not `wsk activation get`
+            !IsResponseResultSuccess(data)) {                               // HTTP response body has Whisk error result
+            Debug(DbgInfo, "Got successful HTTP; but activation response reports an error\n")
+            return parseErrorResponse(resp, data, v)
+        }
+
+        // Handle 2. HTTP Success + No body expected
+        if IsHttpRespSuccess(resp) && v == nil {
+            Debug(DbgInfo, "No interface provided; no HTTP response body expected\n")
+            return resp, nil
+        }
+
+        // Handle 1. HTTP Success + Valid body matching request expectations
+        // Handle 3. HTTP Success + Body does NOT match request expectations
+        if IsHttpRespSuccess(resp) && v != nil {
+
+            // If a timeout occurs, 202 HTTP status code is returned, and the caller wishes to handle such an event, return
+            // an error corresponding with the timeout
+            if ExitWithErrorOnTimeout && resp.StatusCode == EXIT_CODE_TIMED_OUT {
+                errMsg :=  wski18n.T("Request accepted, but processing not completed yet.")
+                err = MakeWskError(errors.New(errMsg), EXIT_CODE_TIMED_OUT, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
+                    NO_MSG_DISPLAYED, NO_DISPLAY_PREFIX, NO_APPLICATION_ERR, TIMED_OUT)
+            }
+
+            return parseSuccessResponse(resp, data, v), err
+        }
+
+        // We should never get here, but just in case return failure to keep the compiler happy
+        werr := MakeWskError(errors.New(wski18n.T("Command failed due to an internal failure")), EXIT_CODE_ERR_GENERAL,
+            DISPLAY_MSG, NO_DISPLAY_USAGE)
+        return resp, werr
+    })
 }
 
 func PrintRequestInfo(req *http.Request, secretToObfuscate ...ObfuscateSet) (*http.Request, error) {
