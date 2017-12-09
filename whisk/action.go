@@ -27,7 +27,7 @@ import (
 )
 
 type ActionService struct {
-	client *Client
+    client ClientInterface
 }
 
 type Action struct {
@@ -231,30 +231,30 @@ func (s *ActionService) Insert(action *Action, overwrite bool) (*Action, *http.R
 	return a, resp, nil
 }
 
-func (s *ActionService) Get(actionName string) (*Action, *http.Response, error) {
-	// Encode resource name as a path (with no query params) before inserting it into the URI
-	// This way any '?' chars in the name won't be treated as the beginning of the query params
-	actionName = (&url.URL{Path: actionName}).String()
-	route := fmt.Sprintf("actions/%s", actionName)
+func (s *ActionService) Get(actionName string, fetchCode bool) (*Action, *http.Response, error) {
+    // Encode resource name as a path (with no query params) before inserting it into the URI
+    // This way any '?' chars in the name won't be treated as the beginning of the query params
+    actionName = (&url.URL{Path: actionName}).String()
+    route := fmt.Sprintf("actions/%s?code=%t", actionName, fetchCode)
 
-	req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
-	if err != nil {
-		Debug(DbgError, "http.NewRequest(GET, %s, nil) error: '%s'\n", route, err)
-		errMsg := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
-			map[string]interface{}{"route": route, "err": err})
-		whiskErr := MakeWskErrorFromWskError(errors.New(errMsg), err, EXIT_CODE_ERR_NETWORK, DISPLAY_MSG,
-			NO_DISPLAY_USAGE)
-		return nil, nil, whiskErr
-	}
+    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
+    if err != nil {
+        Debug(DbgError, "http.NewRequest(GET, %s, nil) error: '%s'\n", route, err)
+        errMsg := wski18n.T("Unable to create HTTP request for GET '{{.route}}': {{.err}}",
+            map[string]interface{}{"route": route, "err": err})
+        whiskErr := MakeWskErrorFromWskError(errors.New(errMsg), err, EXIT_CODE_ERR_NETWORK, DISPLAY_MSG,
+            NO_DISPLAY_USAGE)
+        return nil, nil, whiskErr
+    }
 
-	a := new(Action)
-	resp, err := s.client.Do(req, &a, ExitWithSuccessOnTimeout)
-	if err != nil {
-		Debug(DbgError, "s.client.Do() error - HTTP req %s; error '%s'\n", req.URL.String(), err)
-		return nil, resp, err
-	}
+    a := new(Action)
+    resp, err := s.client.Do(req, &a, ExitWithSuccessOnTimeout)
+    if err != nil {
+        Debug(DbgError, "s.client.Do() error - HTTP req %s; error '%s'\n", req.URL.String(), err)
+        return nil, resp, err
+    }
 
-	return a, resp, nil
+    return a, resp, nil
 }
 
 func (s *ActionService) Delete(actionName string) (*http.Response, error) {
