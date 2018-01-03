@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 )
 
@@ -104,4 +105,38 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, FakeHost, client.Config.Host)
 	assert.Equal(t, FakeBaseURLDiff, client.Config.BaseURL.String())
 	assert.Equal(t, FakeAuthKey, client.Config.AuthToken)
+}
+
+func TestProxyHost(t *testing.T) {
+	var proxyhost = "one.bad.url.going.nowhere.org"
+	var proxyurl = "https://" + proxyhost
+
+	config := GetValidConfigTest()
+	client, err := NewClient(nil, config)
+	assert.NotNil(t, client)
+
+	// This will update the transport
+	err = client.LoadX509KeyPair()
+	assert.Nil(t, err, "LoadX509KeyPair() failed")
+
+	req, err := client.NewRequest("GET", config.BaseURL.String(), nil, false)
+	assert.Nil(t, err, "NewRequest for proxy test failed.")
+	if err != nil {
+		fmt.Printf("NewRequest() error: %s\n", err.Error())
+	}
+
+	// Proxy is enabled by setting env
+	if priorProxyEnv, priorProxyEnvSet := os.LookupEnv("HTTPS_PROXY"); priorProxyEnvSet {
+		err = os.Unsetenv("HTTPS_PROXY")
+		assert.Nil(t, err, "Unsetenv(HTTPS_PROXY) failed: "+err.Error())
+		defer os.Setenv("HTTPS_PROXY", priorProxyEnv)
+	}
+	os.Setenv("HTTPS_PROXY", proxyurl)
+
+	// Issue request that should fail due to a bad proxy host
+	_, err = client.Do(req, nil, true)
+	assert.NotNil(t, err, "Do() did not fail with invalid proxy URL.")
+	if err != nil {
+		assert.Contains(t, err.Error(), proxyhost, "Setting HTTPS_PROXY to '"+proxyhost+"' did not cause the CLI to use that proxy URL.")
+	}
 }
