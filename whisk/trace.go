@@ -69,8 +69,8 @@ func Debug(dl DebugLevel, msgFormat string, args ...interface{}) {
         msg := fmt.Sprintf(msgFormat, args...)
         fcnName := fcn.Name()
 
-        // Cobra command Run/RunE functions are anonymous, so the function name is unfriendly.
-        // Use the file name instead
+        // Cobra command Run/RunE functions are anonymous, so the function name is unfriendly;
+        // use the file name instead
         if strings.Contains(fcnName, "commands.glob.") || strings.Contains(fcnName, "whisk.glob.") {
             fcnName = file
         }
