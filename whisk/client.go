@@ -374,10 +374,13 @@ func (c *Client) Do(req *http.Request, v interface{}, ExitWithErrorOnTimeout boo
     // Handle 0. HTTP Success + Body indicating a whisk failure result
     //   NOTE: Need to ignore activation records send in response to 'wsk get activation NNN` as
     //         these will report the same original error giving the appearance that the command failed.
+    //         Need to ignore `wsk action invoke NNN --result` too, otherwise action whose result is sth likes
+    //         '{"response": {"key": "value"}}' will return an error to such command.
     if (IsHttpRespSuccess(resp) &&                                      // HTTP Status == 200
         data!=nil &&                                                    // HTTP response body exists
         v != nil &&
         !strings.Contains(reflect.TypeOf(v).String(), "Activation") &&  // Request is not `wsk activation get`
+        !(req.URL.Query().Get("result") == "true") &&                   // Request is not `wsk action invoke NNN --result`
         !IsResponseResultSuccess(data)) {                               // HTTP response body has Whisk error result
         Debug(DbgInfo, "Got successful HTTP; but activation response reports an error\n")
         return parseErrorResponse(resp, data, v)
