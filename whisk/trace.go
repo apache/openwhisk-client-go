@@ -69,13 +69,13 @@ func Debug(dl DebugLevel, msgFormat string, args ...interface{}) {
         msg := fmt.Sprintf(msgFormat, args...)
         fcnName := fcn.Name()
 
-        // Cobra command Run/RunE functions are anonymous, so the function name is unfriendly,
-        // so use a file name instead
+        // Cobra command Run/RunE functions are anonymous, so the function name is unfriendly;
+        // use the file name instead
         if strings.Contains(fcnName, "commands.glob.") || strings.Contains(fcnName, "whisk.glob.") {
             fcnName = file
         }
 
-        // Only interesting the the trailing function/file name characters
+        // Only interested in the the trailing function/file name characters
         if len(fcnName) > MaxNameLen {
             fcnName = fcnName[len(fcnName)-MaxNameLen:]
         }
@@ -85,7 +85,7 @@ func Debug(dl DebugLevel, msgFormat string, args ...interface{}) {
 
 /* Function for tracing debug level messages to stdout
    Output format:
-   [file-or-function-name]:line-#:[DebugLevel] The formated message without any appended \n
+   [file-or-function-name]:line-#:[DebugLevel] The formatted message without any appended newline characters
  */
 func Verbose(msgFormat string, args ...interface{}) {
     if IsVerbose() {
