@@ -146,7 +146,7 @@ type ApiSwagger struct {
     SwaggerName     string    `json:"swagger,omitempty"`
     BasePath        string    `json:"basePath,omitempty"`
     Info            *ApiSwaggerInfo `json:"info,omitempty"`
-    Paths           map[string]*ApiSwaggerPath `json:"paths,omitempty"`  // Paths["/a/path"]["get"] -> a generic object
+    Paths           map[string]*ApiSwaggerPath `json:"paths,omitempty"`
     SecurityDef     interface{} `json:"securityDefinitions,omitempty"`
     Security        interface{} `json:"security,omitempty"`
     XConfig         interface{} `json:"x-ibm-configuration,omitempty"`
