@@ -18,18 +18,19 @@
 package whisk
 
 import (
-    "fmt"
-    "runtime"
-    "strings"
-    "os"
+	"fmt"
+	"os"
+	"runtime"
+	"strings"
 )
 
 type DebugLevel string
+
 const (
-    DbgInfo    DebugLevel = "Inf"
-    DbgWarn    DebugLevel = "Wrn"
-    DbgError   DebugLevel = "Err"
-    DbgFatal   DebugLevel = "Ftl"
+	DbgInfo  DebugLevel = "Inf"
+	DbgWarn  DebugLevel = "Wrn"
+	DbgError DebugLevel = "Err"
+	DbgFatal DebugLevel = "Ftl"
 )
 
 const MaxNameLen int = 25
@@ -38,58 +39,58 @@ var isVerbose bool
 var isDebug bool
 
 func init() {
-    if len(os.Getenv("WSK_CLI_DEBUG")) > 0 {    // Useful for tracing init() code, before parms are parsed
-        SetDebug(true)
-    }
+	if len(os.Getenv("WSK_CLI_DEBUG")) > 0 { // Useful for tracing init() code, before parms are parsed
+		SetDebug(true)
+	}
 }
 
 func SetDebug(b bool) {
-    isDebug = b
+	isDebug = b
 }
 
-func SetVerbose (b bool) {
-    isVerbose = b
+func SetVerbose(b bool) {
+	isVerbose = b
 }
 
 func IsVerbose() bool {
-    return isVerbose || isDebug
+	return isVerbose || isDebug
 }
 func IsDebug() bool {
-    return isDebug
+	return isDebug
 }
 
 /* Function for tracing debug level messages to stdout
    Output format:
    [file-or-function-name]:line-#:[DebugLevel] The formated message without any appended \n
- */
+*/
 func Debug(dl DebugLevel, msgFormat string, args ...interface{}) {
-    if isDebug {
-        pc, file, line, _ := runtime.Caller(1)
-        fcn := runtime.FuncForPC(pc)
-        msg := fmt.Sprintf(msgFormat, args...)
-        fcnName := fcn.Name()
+	if isDebug {
+		pc, file, line, _ := runtime.Caller(1)
+		fcn := runtime.FuncForPC(pc)
+		msg := fmt.Sprintf(msgFormat, args...)
+		fcnName := fcn.Name()
 
-        // Cobra command Run/RunE functions are anonymous, so the function name is unfriendly;
-        // use the file name instead
-        if strings.Contains(fcnName, "commands.glob.") || strings.Contains(fcnName, "whisk.glob.") {
-            fcnName = file
-        }
+		// Cobra command Run/RunE functions are anonymous, so the function name is unfriendly;
+		// use the file name instead
+		if strings.Contains(fcnName, "commands.glob.") || strings.Contains(fcnName, "whisk.glob.") {
+			fcnName = file
+		}
 
-        // Only interested in the the trailing function/file name characters
-        if len(fcnName) > MaxNameLen {
-            fcnName = fcnName[len(fcnName)-MaxNameLen:]
-        }
-        fmt.Printf("[%-25s]:%03d:[%3s] %v", fcnName, line, dl, msg)
-    }
+		// Only interested in the the trailing function/file name characters
+		if len(fcnName) > MaxNameLen {
+			fcnName = fcnName[len(fcnName)-MaxNameLen:]
+		}
+		fmt.Printf("[%-25s]:%03d:[%3s] %v", fcnName, line, dl, msg)
+	}
 }
 
 /* Function for tracing debug level messages to stdout
    Output format:
    [file-or-function-name]:line-#:[DebugLevel] The formatted message without any appended newline characters
- */
+*/
 func Verbose(msgFormat string, args ...interface{}) {
-    if IsVerbose() {
-        msg := fmt.Sprintf(msgFormat, args...)
-        fmt.Printf("%v", msg)
-    }
+	if IsVerbose() {
+		msg := fmt.Sprintf(msgFormat, args...)
+		fmt.Printf("%v", msg)
+	}
 }
