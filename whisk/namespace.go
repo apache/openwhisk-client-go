@@ -18,79 +18,79 @@
 package whisk
 
 import (
-    "net/http"
-    "errors"
-    "github.com/apache/incubator-openwhisk-client-go/wski18n"
-    "strings"
-    "fmt"
+	"errors"
+	"fmt"
+	"github.com/apache/incubator-openwhisk-client-go/wski18n"
+	"net/http"
+	"strings"
 )
 
 type Namespace struct {
-    Name                string  `json:"name"`
+	Name string `json:"name"`
 }
 
 type NamespaceService struct {
-    client *Client
+	client *Client
 }
 
 // Compare(sortable) compares namespace to sortable for the purpose of sorting.
 // REQUIRED: sortable must also be of type Namespace.
 // ***Method of type Sortable***
-func(namespace Namespace) Compare(sortable Sortable) (bool) {
-    // Sorts alphabetically
-    namespaceToCompare := sortable.(Namespace)
-    var namespaceString string
-    var compareString string
+func (namespace Namespace) Compare(sortable Sortable) bool {
+	// Sorts alphabetically
+	namespaceToCompare := sortable.(Namespace)
+	var namespaceString string
+	var compareString string
 
-    namespaceString = strings.ToLower(namespace.Name)
-    compareString = strings.ToLower(namespaceToCompare.Name)
+	namespaceString = strings.ToLower(namespace.Name)
+	compareString = strings.ToLower(namespaceToCompare.Name)
 
-    return namespaceString < compareString
+	return namespaceString < compareString
 }
 
 // ToHeaderString() returns the header for a list of namespaces
-func(namespace Namespace) ToHeaderString() string {
-    return fmt.Sprintf("%s\n", "namespaces")
+func (namespace Namespace) ToHeaderString() string {
+	return fmt.Sprintf("%s\n", "namespaces")
 }
 
 // ToSummaryRowString() returns a compound string of required parameters for printing
 //   from CLI command `wsk namespace list`.
 // ***Method of type Sortable***
-func(namespace Namespace) ToSummaryRowString() string {
-    return fmt.Sprintf("%s\n", namespace.Name)
+func (namespace Namespace) ToSummaryRowString() string {
+	return fmt.Sprintf("%s\n", namespace.Name)
 }
 
 // get a list of available namespaces
 func (s *NamespaceService) List() ([]Namespace, *http.Response, error) {
-    // make a request to c.BaseURL / namespaces
+	// make a request to c.BaseURL / namespaces
 
-    // Create the request against the namespaces resource
-    s.client.Config.Namespace = ""
-    route := ""
-    req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
-    if err != nil {
-        Debug(DbgError, "s.client.NewRequest(GET) error: %s\n", err)
-        errStr := wski18n.T("Unable to create HTTP request for GET: {{.err}}",
-            map[string]interface{}{"err": err})
-        werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
-        return nil, nil, werr
-    }
+	// Create the request against the namespaces resource
+	s.client.Config.Namespace = ""
+	route := ""
+	req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
+	if err != nil {
+		Debug(DbgError, "s.client.NewRequest(GET) error: %s\n", err)
+		errStr := wski18n.T("Unable to create HTTP request for GET: {{.err}}",
+			map[string]interface{}{"err": err})
+		werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+		return nil, nil, werr
+	}
 
-    var namespaceNames []string
-    resp, err := s.client.Do(req, &namespaceNames, ExitWithSuccessOnTimeout)
-    if err != nil {
-        Debug(DbgError, "s.client.Do() error - HTTP req %s; error '%s'\n", req.URL.String(), err)
-        return nil, resp, err
-    }
+	var namespaceNames []string
+	resp, err := s.client.Do(req, &namespaceNames, ExitWithSuccessOnTimeout)
+	if err != nil {
+		Debug(DbgError, "s.client.Do() error - HTTP req %s; error '%s'\n", req.URL.String(), err)
+		return nil, resp, err
+	}
 
-    var namespaces []Namespace
-    for _, nsName := range namespaceNames {
-        ns := Namespace{
-            Name: nsName,
-        }
-        namespaces = append(namespaces, ns)
-    }
+	var namespaces []Namespace
+	for _, nsName := range namespaceNames {
+		ns := Namespace{
+			Name: nsName,
+		}
+		namespaces = append(namespaces, ns)
+	}
 
-    Debug(DbgInfo, "Returning []namespaces: %#v\n", namespaces)
-    return namespaces, resp, nil
+	Debug(DbgInfo, "Returning []namespaces: %#v\n", namespaces)
+	return namespaces, resp, nil
 }

@@ -18,65 +18,65 @@
 package whisk
 
 import (
-    "fmt"
-    "errors"
-    "net/http"
-    "github.com/apache/incubator-openwhisk-client-go/wski18n"
+	"errors"
+	"fmt"
+	"github.com/apache/incubator-openwhisk-client-go/wski18n"
+	"net/http"
 )
 
 type SdkService struct {
-    client *Client
+	client *Client
 }
 
 // Structure for SDK request responses
 type Sdk struct {
-    // TODO :: Add SDK fields
+	// TODO :: Add SDK fields
 }
 
 type SdkRequest struct {
-    // TODO :: Add SDK
+	// TODO :: Add SDK
 }
 
 // Install artifact {component = docker || swift || iOS}
 func (s *SdkService) Install(relFileUrl string) (*http.Response, error) {
-    err := s.client.LoadX509KeyPair()
-    if err != nil {
-        return nil, err
-    }
-    baseURL := s.client.Config.BaseURL
-    // Remove everything but the scheme, host, and port
-    baseURL.Path, baseURL.RawQuery, baseURL.Fragment = "", "", ""
+	err := s.client.LoadX509KeyPair()
+	if err != nil {
+		return nil, err
+	}
+	baseURL := s.client.Config.BaseURL
+	// Remove everything but the scheme, host, and port
+	baseURL.Path, baseURL.RawQuery, baseURL.Fragment = "", "", ""
 
-    urlStr := fmt.Sprintf("%s/%s", baseURL, relFileUrl)
+	urlStr := fmt.Sprintf("%s/%s", baseURL, relFileUrl)
 
-    req, err := http.NewRequest("GET", urlStr, nil)
-    if err != nil {
-        Debug(DbgError, "http.NewRequest(GET, %s, nil) error: %s\n", urlStr, err)
-        errStr := wski18n.T("Unable to create HTTP request for GET '{{.url}}': {{.err}}",
-            map[string]interface{}{"url": urlStr, "err": err})
-        werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
-        return nil, werr
-    }
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		Debug(DbgError, "http.NewRequest(GET, %s, nil) error: %s\n", urlStr, err)
+		errStr := wski18n.T("Unable to create HTTP request for GET '{{.url}}': {{.err}}",
+			map[string]interface{}{"url": urlStr, "err": err})
+		werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+		return nil, werr
+	}
 
-    if IsVerbose() {
-        fmt.Println("REQUEST:")
-        fmt.Printf("[%s]\t%s\n", req.Method, req.URL)
-        if len(req.Header) > 0 {
-            fmt.Println("Req Headers")
-            PrintJSON(req.Header)
-        }
-        if req.Body != nil {
-            fmt.Println("Req Body")
-            fmt.Println(req.Body)
-        }
-    }
+	if IsVerbose() {
+		fmt.Println("REQUEST:")
+		fmt.Printf("[%s]\t%s\n", req.Method, req.URL)
+		if len(req.Header) > 0 {
+			fmt.Println("Req Headers")
+			PrintJSON(req.Header)
+		}
+		if req.Body != nil {
+			fmt.Println("Req Body")
+			fmt.Println(req.Body)
+		}
+	}
 
-    // Directly use the HTTP client, not the Whisk CLI client, so that the response body is left alone
-    resp, err := s.client.client.Do(req)
-    if err != nil {
-        Debug(DbgError, "s.client.Do() error - HTTP req %s; error: '%s'\n", req.URL.String(), err)
-        return resp, err
-    }
+	// Directly use the HTTP client, not the Whisk CLI client, so that the response body is left alone
+	resp, err := s.client.client.Do(req)
+	if err != nil {
+		Debug(DbgError, "s.client.Do() error - HTTP req %s; error: '%s'\n", req.URL.String(), err)
+		return resp, err
+	}
 
-    return resp, nil
+	return resp, nil
 }
