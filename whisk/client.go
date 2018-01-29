@@ -196,9 +196,11 @@ func (c *Client) LoadX509KeyPair() error {
 		}
 	}
 
-	c.client.Transport = &http.Transport{
-		TLSClientConfig: tlsConfig,
-	}
+	// Use the defaultTransport as the transport basis to maintain proxy support
+	// Make a copy of the defaultTransport so that the original defaultTransport is left alone
+	defaultTransportCopy := *(http.DefaultTransport.(*http.Transport))
+	defaultTransportCopy.TLSClientConfig = tlsConfig
+	c.client.Transport = &defaultTransportCopy
 
 	return nil
 }
