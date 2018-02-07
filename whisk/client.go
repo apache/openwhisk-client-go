@@ -68,17 +68,18 @@ type Client struct {
 }
 
 type Config struct {
-	Namespace string // NOTE :: Default is "_"
-	Cert      string
-	Key       string
-	AuthToken string
-	Host      string
-	BaseURL   *url.URL // NOTE :: Default is "openwhisk.ng.bluemix.net"
-	Version   string
-	Verbose   bool
-	Debug     bool // For detailed tracing
-	Insecure  bool
-	UserAgent string
+	Namespace        string // NOTE :: Default is "_"
+	Cert             string
+	Key              string
+	AuthToken        string
+	Host             string
+	BaseURL          *url.URL // NOTE :: Default is "openwhisk.ng.bluemix.net"
+	Version          string
+	Verbose          bool
+	Debug            bool // For detailed tracing
+	Insecure         bool
+	UserAgent        string
+	ApigwAccessToken string
 }
 
 type ObfuscateSet struct {
