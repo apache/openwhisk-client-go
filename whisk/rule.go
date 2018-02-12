@@ -31,14 +31,14 @@ type RuleService struct {
 }
 
 type Rule struct {
-	Namespace string      `json:"namespace,omitempty"`
-	Name      string      `json:"name,omitempty"`
-	Version   string      `json:"version,omitempty"`
-	Annotations  KeyValueArr `json:"annotations,omitempty"`
-	Status    string      `json:"status"`
-	Trigger   interface{} `json:"trigger"`
-	Action    interface{} `json:"action"`
-	Publish   *bool       `json:"publish,omitempty"`
+	Namespace   string      `json:"namespace,omitempty"`
+	Name        string      `json:"name,omitempty"`
+	Version     string      `json:"version,omitempty"`
+	Annotations KeyValueArr `json:"annotations,omitempty"`
+	Status      string      `json:"status"`
+	Trigger     interface{} `json:"trigger"`
+	Action      interface{} `json:"action"`
+	Publish     *bool       `json:"publish,omitempty"`
 }
 
 type RuleListOptions struct {
