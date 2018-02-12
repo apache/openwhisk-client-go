@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type RuleService struct {
@@ -124,8 +123,6 @@ func (s *RuleService) Insert(rule *Rule, overwrite bool) (*Rule, *http.Response,
 		return nil, nil, werr
 	}
 
-	spew.Dump(rule)
-
 	req, err := s.client.NewRequestUrl("PUT", routeUrl, rule, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson, AuthRequired)
 	if err != nil {
 		Debug(DbgError, "http.NewRequestUrl(PUT, %s, %+v, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson, AuthRequired); error: '%s'\n", routeUrl, rule, err)
@@ -134,15 +131,6 @@ func (s *RuleService) Insert(rule *Rule, overwrite bool) (*Rule, *http.Response,
 		werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
 		return nil, nil, werr
 	}
-
-///	req, err := s.client.NewRequest("PUT", route, rule, IncludeNamespaceInUrl)
-//	if err != nil {
-//		Debug(DbgError, "http.NewRequest(PUT, %s); error: '%s'\n", route, err)
-//		errStr := wski18n.T("Unable to create HTTP request for PUT '{{.route}}': {{.err}}",
-//			map[string]interface{}{"route": route, "err": err})
-//		werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
-//		return nil, nil, werr
-//	}
 
 	r := new(Rule)
 	resp, err := s.client.Do(req, &r, ExitWithSuccessOnTimeout)

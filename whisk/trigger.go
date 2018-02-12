@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type TriggerService struct {
@@ -124,8 +123,6 @@ func (s *TriggerService) Insert(trigger *Trigger, overwrite bool) (*Trigger, *ht
 		werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
 		return nil, nil, werr
 	}
-
-	spew.Dump(trigger)
 
 	req, err := s.client.NewRequestUrl("PUT", routeUrl, trigger, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson, AuthRequired)
 	if err != nil {
