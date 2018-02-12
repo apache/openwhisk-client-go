@@ -31,13 +31,14 @@ type RuleService struct {
 }
 
 type Rule struct {
-	Namespace string      `json:"namespace,omitempty"`
-	Name      string      `json:"name,omitempty"`
-	Version   string      `json:"version,omitempty"`
-	Status    string      `json:"status"`
-	Trigger   interface{} `json:"trigger"`
-	Action    interface{} `json:"action"`
-	Publish   *bool       `json:"publish,omitempty"`
+	Namespace   string      `json:"namespace,omitempty"`
+	Name        string      `json:"name,omitempty"`
+	Version     string      `json:"version,omitempty"`
+	Annotations KeyValueArr `json:"annotations,omitempty"`
+	Status      string      `json:"status"`
+	Trigger     interface{} `json:"trigger"`
+	Action      interface{} `json:"action"`
+	Publish     *bool       `json:"publish,omitempty"`
 }
 
 type RuleListOptions struct {
@@ -113,11 +114,20 @@ func (s *RuleService) Insert(rule *Rule, overwrite bool) (*Rule, *http.Response,
 	ruleName := (&url.URL{Path: rule.Name}).String()
 	route := fmt.Sprintf("rules/%s?overwrite=%t", ruleName, overwrite)
 
-	req, err := s.client.NewRequest("PUT", route, rule, IncludeNamespaceInUrl)
+	routeUrl, err := url.Parse(route)
 	if err != nil {
-		Debug(DbgError, "http.NewRequest(PUT, %s); error: '%s'\n", route, err)
+		Debug(DbgError, "url.Parse(%s) error: %s\n", route, err)
+		errStr := wski18n.T("Invalid request URL '{{.url}}': {{.err}}",
+			map[string]interface{}{"url": route, "err": err})
+		werr := MakeWskError(errors.New(errStr), EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
+		return nil, nil, werr
+	}
+
+	req, err := s.client.NewRequestUrl("PUT", routeUrl, rule, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson, AuthRequired)
+	if err != nil {
+		Debug(DbgError, "http.NewRequestUrl(PUT, %s, %+v, IncludeNamespaceInUrl, AppendOpenWhiskPathPrefix, EncodeBodyAsJson, AuthRequired); error: '%s'\n", routeUrl, rule, err)
 		errStr := wski18n.T("Unable to create HTTP request for PUT '{{.route}}': {{.err}}",
-			map[string]interface{}{"route": route, "err": err})
+			map[string]interface{}{"route": routeUrl, "err": err})
 		werr := MakeWskErrorFromWskError(errors.New(errStr), err, EXIT_CODE_ERR_GENERAL, DISPLAY_MSG, NO_DISPLAY_USAGE)
 		return nil, nil, werr
 	}
