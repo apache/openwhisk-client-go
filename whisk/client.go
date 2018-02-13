@@ -52,9 +52,9 @@ const (
 )
 
 type ClientInterface interface {
-  NewRequestUrl(method string, urlRelResource *url.URL, body interface{}, includeNamespaceInUrl bool, appendOpenWhiskPath bool, encodeBodyAs string, useAuthentication bool) (*http.Request, error)
-  NewRequest(method, urlStr string, body interface{}, includeNamespaceInUrl bool) (*http.Request, error)
-  Do(req *http.Request, v interface{}, ExitWithErrorOnTimeout bool, secretToObfuscate ...ObfuscateSet) (*http.Response, error)
+	NewRequestUrl(method string, urlRelResource *url.URL, body interface{}, includeNamespaceInUrl bool, appendOpenWhiskPath bool, encodeBodyAs string, useAuthentication bool) (*http.Request, error)
+	NewRequest(method, urlStr string, body interface{}, includeNamespaceInUrl bool) (*http.Request, error)
+	Do(req *http.Request, v interface{}, ExitWithErrorOnTimeout bool, secretToObfuscate ...ObfuscateSet) (*http.Response, error)
 }
 
 type Client struct {

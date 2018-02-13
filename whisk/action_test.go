@@ -20,17 +20,17 @@
 package whisk
 
 import (
-    "testing"
-    "github.com/stretchr/testify/assert"
-    "net/http"
-    "io/ioutil"
-    "encoding/json"
-    "strings"
-    "net/url"
+	"encoding/json"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+	"testing"
 )
 
 const (
-    NODE_ACTION_NO_CODE = `{
+	NODE_ACTION_NO_CODE = `{
         "name": "test",
         "publish": false,
         "annotations": [
@@ -53,7 +53,7 @@ const (
         "namespace": "test@openwhisk"
     }`
 
-    NODE_ACTION = `{
+	NODE_ACTION = `{
         "name": "test",
         "publish": false,
         "annotations": [
@@ -79,73 +79,73 @@ const (
 )
 
 type ActionResponse struct {
-    Body    string
+	Body string
 }
 
 type ActionRequest struct {
-    Method  string
-    URL     string
+	Method string
+	URL    string
 }
 
 var actionResponse = &ActionResponse{}
 var actionRequest = &ActionRequest{}
 
-type MockClient struct {}
+type MockClient struct{}
 
 func (c *MockClient) NewRequestUrl(method string, urlRelResource *url.URL, body interface{}, includeNamespaceInUrl bool, appendOpenWhiskPath bool, encodeBodyAs string, useAuthentication bool) (*http.Request, error) {
-    return &http.Request{}, nil
+	return &http.Request{}, nil
 }
 
 func (c *MockClient) NewRequest(method, urlStr string, body interface{}, includeNamespaceInUrl bool) (*http.Request, error) {
-    actionRequest.Method = method
-    actionRequest.URL = urlStr
+	actionRequest.Method = method
+	actionRequest.URL = urlStr
 
-    request, err := http.NewRequest(method, urlStr, nil)
-    if (err != nil) {
-        return &http.Request{}, err
-    }
+	request, err := http.NewRequest(method, urlStr, nil)
+	if err != nil {
+		return &http.Request{}, err
+	}
 
-    return request, nil
+	return request, nil
 }
 
 func (c *MockClient) Do(req *http.Request, v interface{}, ExitWithErrorOnTimeout bool, secretToObfuscate ...ObfuscateSet) (*http.Response, error) {
-    var reader = strings.NewReader(actionResponse.Body)
+	var reader = strings.NewReader(actionResponse.Body)
 
-    dc := json.NewDecoder(reader)
-    dc.UseNumber()
-    err := dc.Decode(v)
+	dc := json.NewDecoder(reader)
+	dc.UseNumber()
+	err := dc.Decode(v)
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    resp := &http.Response{
-        StatusCode: 200,
-        Body: ioutil.NopCloser(reader),
-    }
+	resp := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(reader),
+	}
 
-    return resp, nil
+	return resp, nil
 }
 
 func TestActionGet(t *testing.T) {
-    assert := assert.New(t)
-    mockClient := &MockClient{}
-    actionService := &ActionService{client: mockClient}
+	assert := assert.New(t)
+	mockClient := &MockClient{}
+	actionService := &ActionService{client: mockClient}
 
-    actionResponse.Body = NODE_ACTION_NO_CODE
-    action, _, _ := actionService.Get("test", false)
+	actionResponse.Body = NODE_ACTION_NO_CODE
+	action, _, _ := actionService.Get("test", false)
 
-    var exec Exec
-    exec = *action.Exec
-    var nilStr *string
+	var exec Exec
+	exec = *action.Exec
+	var nilStr *string
 
-    assert.Equal("GET", actionRequest.Method)
-    assert.Equal("actions/test?code=false", actionRequest.URL)
-    assert.Equal(nilStr, exec.Code)
+	assert.Equal("GET", actionRequest.Method)
+	assert.Equal("actions/test?code=false", actionRequest.URL)
+	assert.Equal(nilStr, exec.Code)
 
-    actionResponse.Body = NODE_ACTION
-    action, _, _ = actionService.Get("test", true)
-    assert.Equal("GET", actionRequest.Method)
-    assert.Equal("actions/test?code=true", actionRequest.URL)
-    assert.Equal("...", *action.Exec.Code)
+	actionResponse.Body = NODE_ACTION
+	action, _, _ = actionService.Get("test", true)
+	assert.Equal("GET", actionRequest.Method)
+	assert.Equal("actions/test?code=true", actionRequest.URL)
+	assert.Equal("...", *action.Exec.Code)
 }
