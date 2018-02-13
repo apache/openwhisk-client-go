@@ -39,6 +39,7 @@ type Trigger struct {
 	Parameters   KeyValueArr `json:"parameters,omitempty"`
 	Limits       *Limits     `json:"limits,omitempty"`
 	Publish      *bool       `json:"publish,omitempty"`
+    Rules        map[string]interface{} `json:"rules,omitempty"`
 }
 
 type TriggerListOptions struct {
