@@ -27,7 +27,7 @@ import (
 )
 
 type ActionService struct {
-	client *Client
+	client ClientInterface
 }
 
 type Action struct {
@@ -231,11 +231,11 @@ func (s *ActionService) Insert(action *Action, overwrite bool) (*Action, *http.R
 	return a, resp, nil
 }
 
-func (s *ActionService) Get(actionName string) (*Action, *http.Response, error) {
+func (s *ActionService) Get(actionName string, fetchCode bool) (*Action, *http.Response, error) {
 	// Encode resource name as a path (with no query params) before inserting it into the URI
 	// This way any '?' chars in the name won't be treated as the beginning of the query params
 	actionName = (&url.URL{Path: actionName}).String()
-	route := fmt.Sprintf("actions/%s", actionName)
+	route := fmt.Sprintf("actions/%s?code=%t", actionName, fetchCode)
 
 	req, err := s.client.NewRequest("GET", route, nil, IncludeNamespaceInUrl)
 	if err != nil {
