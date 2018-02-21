@@ -27,7 +27,7 @@ import (
 )
 
 type TriggerService struct {
-	client *Client
+	client ClientInterface
 }
 
 type Trigger struct {
