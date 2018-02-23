@@ -27,18 +27,19 @@ import (
 )
 
 type TriggerService struct {
-	client *Client
+	client ClientInterface
 }
 
 type Trigger struct {
-	Namespace    string      `json:"namespace,omitempty"`
-	Name         string      `json:"name,omityempty"`
-	Version      string      `json:"version,omitempty"`
-	ActivationId string      `json:"activationId,omitempty"`
-	Annotations  KeyValueArr `json:"annotations,omitempty"`
-	Parameters   KeyValueArr `json:"parameters,omitempty"`
-	Limits       *Limits     `json:"limits,omitempty"`
-	Publish      *bool       `json:"publish,omitempty"`
+	Namespace    string                 `json:"namespace,omitempty"`
+	Name         string                 `json:"name,omityempty"`
+	Version      string                 `json:"version,omitempty"`
+	ActivationId string                 `json:"activationId,omitempty"`
+	Annotations  KeyValueArr            `json:"annotations,omitempty"`
+	Parameters   KeyValueArr            `json:"parameters,omitempty"`
+	Limits       *Limits                `json:"limits,omitempty"`
+	Publish      *bool                  `json:"publish,omitempty"`
+	Rules        map[string]interface{} `json:"rules,omitempty"`
 }
 
 type TriggerListOptions struct {
