@@ -74,18 +74,19 @@ type Client struct {
 }
 
 type Config struct {
-	Namespace        string // NOTE :: Default is "_"
-	Cert             string
-	Key              string
-	AuthToken        string
-	Host             string
-	BaseURL          *url.URL // NOTE :: Default is "openwhisk.ng.bluemix.net"
-	Version          string
-	Verbose          bool
-	Debug            bool // For detailed tracing
-	Insecure         bool
-	UserAgent        string
-	ApigwAccessToken string
+	Namespace         string // NOTE :: Default is "_"
+	Cert              string
+	Key               string
+	AuthToken         string
+	Host              string
+	BaseURL           *url.URL // NOTE :: Default is "openwhisk.ng.bluemix.net"
+	Version           string
+	Verbose           bool
+	Debug             bool // For detailed tracing
+	Insecure          bool
+	UserAgent         string
+	ApigwAccessToken  string
+	AdditionalHeaders map[string]string
 }
 
 type ObfuscateSet struct {
@@ -282,6 +283,10 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}, includeName
 	}
 
 	req.Header.Add("User-Agent", c.Config.UserAgent)
+
+	for key, value := range c.Config.AdditionalHeaders {
+		req.Header.Add(key, value)
+	}
 
 	return req, nil
 }
@@ -777,6 +782,10 @@ func (c *Client) NewRequestUrl(
 	}
 
 	req.Header.Add("User-Agent", c.Config.UserAgent)
+
+	for key, value := range c.Config.AdditionalHeaders {
+		req.Header.Add(key, value)
+	}
 
 	return req, nil
 }
