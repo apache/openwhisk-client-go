@@ -143,9 +143,9 @@ func TestProxyHost(t *testing.T) {
 
 func TestAdditionalHeaders(t *testing.T) {
 	config := GetValidConfigTest()
-	config.AdditionalHeaders = make(map[string]string)
-	config.AdditionalHeaders["Key1"] = "Value1"
-	config.AdditionalHeaders["Key2"] = "Value2"
+	config.AdditionalHeaders = make(map[string][]string)
+	config.AdditionalHeaders.Add("Key1", "Value1")
+	config.AdditionalHeaders.Add("Key2", "Value2")
 
 	client, _ := NewClient(nil, config)
 	assert.NotNil(t, client)
@@ -156,8 +156,8 @@ func TestAdditionalHeaders(t *testing.T) {
 		fmt.Printf("NewRequest() error: %s\n", newRequestErr.Error())
 	}
 
-	assert.Equal(t, []string([]string{"Value1"}), newRequest.Header["Key1"])
-	assert.Equal(t, []string([]string{"Value2"}), newRequest.Header["Key2"])
+	assert.Equal(t, "Value1", newRequest.Header.Get("Key1"))
+	assert.Equal(t, "Value2", newRequest.Header.Get("Key2"))
 
 	newRequestUrl, newRequestUrlErr := client.NewRequestUrl("GET", config.BaseURL, nil, false, false, "", false)
 	assert.Nil(t, newRequestUrlErr, "NewRequest for proxy test failed.")
@@ -165,6 +165,6 @@ func TestAdditionalHeaders(t *testing.T) {
 		fmt.Printf("NewRequest() error: %s\n", newRequestUrlErr.Error())
 	}
 
-	assert.Equal(t, []string([]string{"Value1"}), newRequestUrl.Header["Key1"])
-	assert.Equal(t, []string([]string{"Value2"}), newRequestUrl.Header["Key2"])
+	assert.Equal(t, "Value1", newRequestUrl.Header.Get("Key1"))
+	assert.Equal(t, "Value2", newRequestUrl.Header.Get("Key2"))
 }

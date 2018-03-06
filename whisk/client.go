@@ -86,7 +86,7 @@ type Config struct {
 	Insecure          bool
 	UserAgent         string
 	ApigwAccessToken  string
-	AdditionalHeaders map[string]string
+	AdditionalHeaders http.Header
 }
 
 type ObfuscateSet struct {
@@ -284,8 +284,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}, includeName
 
 	req.Header.Add("User-Agent", c.Config.UserAgent)
 
-	for key, value := range c.Config.AdditionalHeaders {
-		req.Header.Add(key, value)
+	for key := range c.Config.AdditionalHeaders {
+		req.Header.Add(key, c.Config.AdditionalHeaders.Get(key))
 	}
 
 	return req, nil
@@ -783,8 +783,8 @@ func (c *Client) NewRequestUrl(
 
 	req.Header.Add("User-Agent", c.Config.UserAgent)
 
-	for key, value := range c.Config.AdditionalHeaders {
-		req.Header.Add(key, value)
+	for key := range c.Config.AdditionalHeaders {
+		req.Header.Add(key, c.Config.AdditionalHeaders.Get(key))
 	}
 
 	return req, nil
