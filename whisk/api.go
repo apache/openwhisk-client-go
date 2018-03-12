@@ -106,6 +106,7 @@ type ApiAction struct {
 	BackendMethod string `json:"backendMethod,omitempty"`
 	BackendUrl    string `json:"backendUrl,omitempty"`
 	Auth          string `json:"authkey,omitempty"`
+    SecureKey     string `json:"secureKey,omitempty"`
 }
 
 type ApiOptions struct {
