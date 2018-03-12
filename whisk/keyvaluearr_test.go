@@ -20,23 +20,23 @@
 package whisk
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestKeyValueArrReplaceOrAdd(t *testing.T) {
-    kvArr := make(KeyValueArr, 3)
-    kvArr[0] = KeyValue{"key0", "value0"}
-    kvArr[1] = KeyValue{"key1", "value1"}
-    kvArr[2] = KeyValue{"key2", "value2"}
+	kvArr := make(KeyValueArr, 3)
+	kvArr[0] = KeyValue{"key0", "value0"}
+	kvArr[1] = KeyValue{"key1", "value1"}
+	kvArr[2] = KeyValue{"key2", "value2"}
 
-    kvNew := &KeyValue{"keyAdd", "valueAdd"}
-    kvArrNew := kvArr.AddOrReplace(kvNew)
-    assert.Equal(t, len(kvArrNew), 4)
-    assert.Equal(t, kvArrNew.GetValue(kvNew.Key), kvNew.Value)
+	kvNew := &KeyValue{"keyAdd", "valueAdd"}
+	kvArrNew := kvArr.AddOrReplace(kvNew)
+	assert.Equal(t, len(kvArrNew), 4)
+	assert.Equal(t, kvArrNew.GetValue(kvNew.Key), kvNew.Value)
 
-    kvAdd := &KeyValue{"key3", "valueReplace"}
-    kvArrNew = kvArr.AddOrReplace(kvAdd)
-    assert.Equal(t, len(kvArrNew), 4)
-    assert.Equal(t, kvArrNew.GetValue(kvAdd.Key), kvAdd.Value)
+	kvAdd := &KeyValue{"key3", "valueReplace"}
+	kvArrNew = kvArr.AddOrReplace(kvAdd)
+	assert.Equal(t, len(kvArrNew), 4)
+	assert.Equal(t, kvArrNew.GetValue(kvAdd.Key), kvAdd.Value)
 }

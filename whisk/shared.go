@@ -63,17 +63,17 @@ func (keyValueArr KeyValueArr) FindKeyValue(key string) int {
  * Returns a new key value array with the update
  */
 func (keyValueArr KeyValueArr) AddOrReplace(kv *KeyValue) KeyValueArr {
-    var replaced = false
-    for i := 0; i < len(keyValueArr); i++ {
-        if strings.ToLower(keyValueArr[i].Key) == strings.ToLower(kv.Key) {
-            keyValueArr[i].Value = kv.Value
-            replaced = true
-        }
-    }
-    if !replaced {
-        return append(keyValueArr, *kv)
-    }
-    return keyValueArr
+	var replaced = false
+	for i := 0; i < len(keyValueArr); i++ {
+		if strings.ToLower(keyValueArr[i].Key) == strings.ToLower(kv.Key) {
+			keyValueArr[i].Value = kv.Value
+			replaced = true
+		}
+	}
+	if !replaced {
+		return append(keyValueArr, *kv)
+	}
+	return keyValueArr
 }
 
 /*
