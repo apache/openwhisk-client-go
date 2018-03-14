@@ -101,12 +101,12 @@ type ApiParameter struct {
 }
 
 type ApiAction struct {
-	Name          string `json:"name,omitempty"`
-	Namespace     string `json:"namespace,omitempty"`
-	BackendMethod string `json:"backendMethod,omitempty"`
-	BackendUrl    string `json:"backendUrl,omitempty"`
-	Auth          string `json:"authkey,omitempty"`
-	SecureKey     string `json:"secureKey,omitempty"`
+	Name          string      `json:"name,omitempty"`
+	Namespace     string      `json:"namespace,omitempty"`
+	BackendMethod string      `json:"backendMethod,omitempty"`
+	BackendUrl    string      `json:"backendUrl,omitempty"`
+	Auth          string      `json:"authkey,omitempty"`
+	SecureKey     interface{} `json:"secureKey,omitempty"`
 }
 
 type ApiOptions struct {
