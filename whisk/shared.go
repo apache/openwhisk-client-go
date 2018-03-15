@@ -57,6 +57,26 @@ func (keyValueArr KeyValueArr) FindKeyValue(key string) int {
 }
 
 /*
+ * Adds the specified KeyValue to the key value array.  If the KeyValue's key
+ * is already in the array, that entry is updated with the KeyValue's value.
+ *
+ * Returns a new key value array with the update
+ */
+func (keyValueArr KeyValueArr) AddOrReplace(kv *KeyValue) KeyValueArr {
+	var replaced = false
+	for i := 0; i < len(keyValueArr); i++ {
+		if strings.ToLower(keyValueArr[i].Key) == strings.ToLower(kv.Key) {
+			keyValueArr[i].Value = kv.Value
+			replaced = true
+		}
+	}
+	if !replaced {
+		return append(keyValueArr, *kv)
+	}
+	return keyValueArr
+}
+
+/*
 Appends items from appKeyValueArr to keyValueArr if the appKeyValueArr item does not exist in keyValueArr.
 */
 func (keyValueArr KeyValueArr) AppendKeyValueArr(appKeyValueArr KeyValueArr) KeyValueArr {
