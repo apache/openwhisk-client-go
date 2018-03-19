@@ -38,7 +38,7 @@ const (
 	OPENWHISK_PORT       = "whisk.api.host.port"
 	OPENWHISK_HOST       = "whisk.api.host.name"
 	DEFAULT_VERSION      = "v1"
-	DEFAULT_NAMESPACE    = "guest"
+	DEFAULT_NAMESPACE    = "_"
 
 	NAMESPACE          = "NAMESPACE"
 	AUTH               = "AUTH"
