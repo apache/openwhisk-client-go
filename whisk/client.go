@@ -602,12 +602,12 @@ func parseSuccessResponse(resp *http.Response, data []byte, v interface{}) *http
 // Here's an example error response body with HTTP status code == 400
 // {
 //     "error": "namespace contains invalid characters",
-//     "code": 1422870
+//     "code": "1422870"
 // }
 type ErrorResponse struct {
 	Response *http.Response // HTTP response that caused this error
 	ErrMsg   *interface{}   `json:"error"` // error message string
-	Code     *int64         `json:"code"`  // validation error code
+	Code     *interface{}   `json:"code"`  // validation error code (tid)
 }
 
 type AppErrorResult struct {
