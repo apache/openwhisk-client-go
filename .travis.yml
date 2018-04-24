@@ -44,10 +44,13 @@ before_install:
 
 install:
   - export DEPLOY_BUILD_READY=false
-  - go get -u github.com/golang/lint/golint
+  - mkdir -p $GOPATH/src/golang.org/x/
+  - git clone --depth 1 https://github.com/golang/lint.git $GOPATH/src/golang.org/x/lint
+  - go get -u golang.org/x/lint/golint
   - go get -u github.com/stretchr/testify
 
 script:
+  - cd $TRAVIS_BUILD_DIR
   - ./tools/travis/build.sh
   - export PATH=$PATH:$TRAVIS_BUILD_DIR;
   - make test
