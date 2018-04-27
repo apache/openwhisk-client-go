@@ -186,7 +186,7 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright 2015-2016  IBM Corporation
+   Copyright 2016-2018 The Apache Software Foundation
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -199,3 +199,15 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+
+=======================================================================
+BSD 3-Clause "New" or "Revised" License
+=======================================================================
+
+This product depends on the software: Go
+  Available at: https://golang.org/
+  Version used: 1.8
+  Used under the following license: BSD 3 Clause License (https://opensource.org/licenses/BSD-3-Clause)
+  License included at licenses/LICENSE-go.txt, or Copyright (c) 2009 The Go Authors. All rights reserved.
+  Copyright (c) 2009 The Go Authors. All rights reserved.
