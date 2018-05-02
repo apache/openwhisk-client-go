@@ -1,0 +1,40 @@
+plugins {
+    id 'com.github.blindpirate.gogradle' version '0.8.1'
+}
+
+project.ext {
+    basePackageName = "openwhisk-client-go"
+    packageExtension = "tar.gz"
+    if (project.hasProperty('projectVersion')) {
+        packageVersion = "${projectVersion}"
+    } else {
+        packageVersion = ""
+    }
+    buildFolder = "build"
+}
+
+task taredSources(type: Tar) {
+    baseName basePackageName
+    description "Creates a combined tar.gz file of cli's sources"
+    group "Release artifact"
+    classifier "sources"
+
+    from(project.rootDir) {
+        include('whisk/*.go', 'wski18n/**')
+        include('Godeps/**', 'gradle/**')
+        include('README.md', 'CONTRIBUTING.md', 'Makefile')
+        include('gradlew', 'gradlew.bat', 'build.gradle', 'gradle.properties', 'settings.gradle')
+        include('LICENSE.txt', 'NOTICE.txt', 'CHANGELOG.txt')
+    }
+    destinationDir file(buildFolder)
+    extension packageExtension
+    version packageVersion
+    compression = Compression.GZIP
+}
+
+task cleanBuild(type: Delete) {
+    def folder = new File(buildFolder)
+    if(folder.exists()) {
+        delete file(buildFolder).listFiles()
+    }
+}
