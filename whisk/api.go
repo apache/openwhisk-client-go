@@ -148,10 +148,6 @@ type ApiSwagger struct {
 	BasePath    string                     `json:"basePath,omitempty"`
 	Info        *ApiSwaggerInfo            `json:"info,omitempty"`
 	Paths       map[string]*ApiSwaggerPath `json:"paths,omitempty"`
-	SecurityDef interface{}                `json:"securityDefinitions,omitempty"`
-	Security    interface{}                `json:"security,omitempty"`
-	XConfig     interface{}                `json:"x-ibm-configuration,omitempty"`
-	XRateLimit  interface{}                `json:"x-ibm-rate-limit,omitempty"`
 }
 
 type ApiSwaggerPath struct {
