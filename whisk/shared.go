@@ -94,7 +94,8 @@ type Annotations []map[string]interface{}
 type Parameters *json.RawMessage
 
 type Limits struct {
-	Timeout *int `json:"timeout,omitempty"`
-	Memory  *int `json:"memory,omitempty"`
-	Logsize *int `json:"logs,omitempty"`
+	Timeout     *int `json:"timeout,omitempty"`
+	Memory      *int `json:"memory,omitempty"`
+	Logsize     *int `json:"logs,omitempty"`
+	Concurrency *int `json:"concurrency,omitempty"`
 }
