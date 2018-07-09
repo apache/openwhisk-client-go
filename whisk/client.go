@@ -149,7 +149,7 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
 	}
 
 	if len(config.UserAgent) == 0 {
-		config.UserAgent = "OpenWhisk-Go-Client " +  runtime.GOOS + " " + runtime.GOARCH
+		config.UserAgent = "OpenWhisk-Go-Client " + runtime.GOOS + " " + runtime.GOARCH
 	}
 
 	c := &Client{
