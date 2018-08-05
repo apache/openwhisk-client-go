@@ -58,13 +58,21 @@ type ClientInterface interface {
 	Do(req *http.Request, v interface{}, ExitWithErrorOnTimeout bool, secretToObfuscate ...ObfuscateSet) (*http.Response, error)
 }
 
+type TriggerServiceInterface interface {
+	List(options *TriggerListOptions) ([]Trigger, *http.Response, error)
+	Insert(trigger *Trigger, overwrite bool) (*Trigger, *http.Response, error)
+	Get(triggerName string) (*Trigger, *http.Response, error)
+	Delete(triggerName string) (*Trigger, *http.Response, error)
+	Fire(triggerName string, payload interface{}) (*Trigger, *http.Response, error)
+}
+
 type Client struct {
 	client *http.Client
 	*Config
 	Transport *http.Transport
 
 	Sdks        *SdkService
-	Triggers    *TriggerService
+	Triggers    TriggerServiceInterface
 	Actions     *ActionService
 	Rules       *RuleService
 	Activations *ActivationService
