@@ -301,7 +301,11 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}, includeName
 }
 
 func (c *Client) addAuthHeader(req *http.Request, authRequired bool) error {
-	if c.Config.AuthToken != "" {
+	// Allow for authorization override via Additional Headers
+	authHeaderValue := c.Config.AdditionalHeaders.Get("Authorization")
+	if authHeaderValue != "" {
+		Debug(DbgInfo, "Using additional header authorization\n")
+	} else if c.Config.AuthToken != "" {
 		encodedAuthToken := base64.StdEncoding.EncodeToString([]byte(c.Config.AuthToken))
 		req.Header.Add("Authorization", fmt.Sprintf("Basic %s", encodedAuthToken))
 		Debug(DbgInfo, "Adding basic auth header; using authkey\n")
