@@ -675,10 +675,16 @@ func IsHttpRespSuccess(r *http.Response) bool {
 func IsResponseResultSuccess(data []byte) bool {
 	errResp := new(WhiskErrorResponse)
 	err := json.Unmarshal(data, &errResp)
-	if err == nil && errResp.Response != nil {
+
+	if err != nil {
+		Debug(DbgWarn, "IsResponseResultSuccess: failed to parse response result: %v\n", err)
+		return false
+	}
+
+	if errResp.Response != nil {
 		return errResp.Response.Success
 	}
-	Debug(DbgWarn, "IsResponseResultSuccess: failed to parse response result: %v\n", err)
+
 	return true
 }
 
