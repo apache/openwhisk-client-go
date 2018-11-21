@@ -677,10 +677,9 @@ func IsResponseResultSuccess(data []byte) bool {
 	err := json.Unmarshal(data, &errResp)
 
 	if errResp.Response != nil {
-		if err != nil && !errResp.Response.Success { //failed to parse WhiskErrorResponse AND was not success
-			Debug(DbgWarn, "IsResponseResultSuccess: failed to parse response result: %v\n", err)
-		}
 		return errResp.Response.Success
+	} else if err != nil { //failed to parse WhiskErrorResponse
+		Debug(DbgWarn, "IsResponseResultSuccess: failed to parse response result: %v\n", err)
 	}
 
 	return true
