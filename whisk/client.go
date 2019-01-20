@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/apache/incubator-openwhisk-client-go/wski18n"
 	"io"
 	"io/ioutil"
 	"net"
@@ -35,6 +34,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/apache/incubator-openwhisk-client-go/wski18n"
 )
 
 const (
@@ -111,10 +112,15 @@ var DefaultObfuscateArr = []ObfuscateSet{
 	},
 }
 
-func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
+// NewClient creates a new whisk client with the provided http client and whisk configuration.
+//
+// A new http.Transport will be created when client cert or TLS insecure options are set.
+// If one use custom tranport and want to keep it intact, please opt out TLS related fields
+// in configInput and construct TLS conguration in the custom transport.
+func NewClient(httpClient *http.Client, configInput *Config) (*Client, error) {
 
 	var config *Config
-	if config_input == nil {
+	if configInput == nil {
 		defaultConfig, err := GetDefaultConfig()
 		if err != nil {
 			return nil, err
@@ -122,7 +128,7 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
 			config = defaultConfig
 		}
 	} else {
-		config = config_input
+		config = configInput
 	}
 
 	if httpClient == nil {
@@ -138,7 +144,7 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
 	} else if config.BaseURL == nil {
 		config.BaseURL, err = GetUrlBase(config.Host)
 		if err != nil {
-			Debug(DbgError, "Unable to create request URL, because the api host %s is invalid\n", config.Host, err)
+			Debug(DbgError, "Unable to create request URL, because the api host %s is invalid: %s\n", config.Host, err)
 			errStr = wski18n.T("Unable to create request URL, because the api host '{{.host}}' is invalid: {{.err}}",
 				map[string]interface{}{"host": config.Host, "err": err})
 		}
@@ -176,17 +182,28 @@ func NewClient(httpClient *http.Client, config_input *Config) (*Client, error) {
 	c.Info = &InfoService{client: c}
 	c.Apis = &ApiService{client: c}
 
+	werr := c.LoadX509KeyPair()
+	if werr != nil {
+		return nil, werr
+	}
+
 	return c, nil
 }
 
 func (c *Client) LoadX509KeyPair() error {
+	var tlsModified bool
+
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: c.Config.Insecure,
 	}
+	// reasoned from: tlsModified = (c.config.Insecure != boolean default)
+	//     tlsModified = (c.config.Insecure != false)
+	tlsModified = c.Config.Insecure
 
 	if c.Config.Cert != "" && c.Config.Key != "" {
 		if cert, err := ReadX509KeyPair(c.Config.Cert, c.Config.Key); err == nil {
 			tlsConfig.Certificates = []tls.Certificate{cert}
+			tlsModified = true
 		} else {
 			errStr := wski18n.T("Unable to load the X509 key pair due to the following reason: {{.err}}",
 				map[string]interface{}{"err": err})
@@ -214,19 +231,26 @@ func (c *Client) LoadX509KeyPair() error {
 		}
 	}
 
-	// Use the defaultTransport as the transport basis to maintain proxy support
-	c.client.Transport = &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       tlsConfig,
+	// only set new transport when the TLS config is nondefault
+	if tlsModified {
+		if c.client.Transport != nil {
+			warningStr := "The provided http.Transport is replaced to match the TLS configuration. Custom transport cannot coexist with nondefault TLS configuration"
+			Debug(DbgWarn, warningStr)
+		}
+		// Use the defaultTransport as the transport basis to maintain proxy support
+		c.client.Transport = &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig:       tlsConfig,
+		}
 	}
 
 	return nil
@@ -241,11 +265,6 @@ var ReadX509KeyPair = func(certFile, keyFile string) (tls.Certificate, error) {
 ///////////////////////////////
 
 func (c *Client) NewRequest(method, urlStr string, body interface{}, includeNamespaceInUrl bool) (*http.Request, error) {
-	werr := c.LoadX509KeyPair()
-	if werr != nil {
-		return nil, werr
-	}
-
 	if includeNamespaceInUrl {
 		if c.Config.Namespace != "" {
 			urlStr = fmt.Sprintf("%s/namespaces/%s/%s", c.Config.Version, c.Config.Namespace, urlStr)
@@ -705,10 +724,6 @@ func (c *Client) NewRequestUrl(
 	useAuthentication bool) (*http.Request, error) {
 	var requestUrl *url.URL
 	var err error
-	error := c.LoadX509KeyPair()
-	if error != nil {
-		return nil, error
-	}
 
 	if appendOpenWhiskPath {
 		var urlVerNamespaceStr string

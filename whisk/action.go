@@ -213,7 +213,7 @@ func (s *ActionService) Insert(action *Action, overwrite bool) (*Action, *http.R
 
 	req, err := s.client.NewRequest("PUT", route, action, IncludeNamespaceInUrl)
 	if err != nil {
-		Debug(DbgError, "http.NewRequest(PUT, %s, %#v) error: '%s'\n", route, err, action)
+		Debug(DbgError, "http.NewRequest(PUT, %s, %#v) error: '%s'\n", route, action, err)
 		errMsg := wski18n.T("Unable to create HTTP request for PUT '{{.route}}': {{.err}}",
 			map[string]interface{}{"route": route, "err": err})
 		whiskErr := MakeWskErrorFromWskError(errors.New(errMsg), err, EXIT_CODE_ERR_NETWORK, DISPLAY_MSG,
