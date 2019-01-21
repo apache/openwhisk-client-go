@@ -196,8 +196,6 @@ func (c *Client) LoadX509KeyPair() error {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: c.Config.Insecure,
 	}
-	// reasoned from: tlsModified = (c.config.Insecure != boolean default)
-	//     tlsModified = (c.config.Insecure != false)
 	tlsModified = c.Config.Insecure
 
 	if c.Config.Cert != "" && c.Config.Key != "" {
