@@ -191,17 +191,13 @@ func NewClient(httpClient *http.Client, configInput *Config) (*Client, error) {
 }
 
 func (c *Client) LoadX509KeyPair() error {
-	var tlsModified bool
-
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: c.Config.Insecure,
 	}
-	tlsModified = c.Config.Insecure
 
 	if c.Config.Cert != "" && c.Config.Key != "" {
 		if cert, err := ReadX509KeyPair(c.Config.Cert, c.Config.Key); err == nil {
 			tlsConfig.Certificates = []tls.Certificate{cert}
-			tlsModified = true
 		} else {
 			errStr := wski18n.T("Unable to load the X509 key pair due to the following reason: {{.err}}",
 				map[string]interface{}{"err": err})
@@ -229,8 +225,8 @@ func (c *Client) LoadX509KeyPair() error {
 		}
 	}
 
-	// only set new transport when the TLS config is nondefault
-	if tlsModified {
+	// Only replace the existing transport when a custom TLS configuration is needed
+	if tlsConfig.InsecureSkipVerify || tlsConfig.Certificates != nil {
 		if c.client.Transport != nil {
 			warningStr := "The provided http.Transport is replaced to match the TLS configuration. Custom transport cannot coexist with nondefault TLS configuration"
 			Debug(DbgWarn, warningStr)
