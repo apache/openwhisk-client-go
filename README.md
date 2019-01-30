@@ -28,6 +28,7 @@ This project `openwhisk-client-go` is a Go client library to access Openwhisk AP
 
 You need to install the following package in order to run this Go client library:
 - [Go](https://golang.org/doc/install)
+- [govendor](https://github.com/kardianos/govendor)
 
 Make sure you select the package that fits your local environment, and [set the GOPATH environment variable](https://github.com/golang/go/wiki/SettingGOPATH).
 
@@ -45,6 +46,7 @@ Open a terminal, and run the following commands to run the unit tests:
 
 ```
 $ cd $GOPATH/src/github.com/apache/incubator-openwhisk-client-go
+$ govendor sync
 $ go test -v ./... -tags=unit
 ```
 
