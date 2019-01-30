@@ -1,5 +1,0 @@
-{
-	"ImportPath": "github.com/apache/incubator-openwhisk-client-go",
-	"GoVersion": "go1.9.3",
-	"Deps": []
-}
