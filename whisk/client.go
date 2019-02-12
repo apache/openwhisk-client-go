@@ -598,7 +598,7 @@ func parseApplicationError(resp *http.Response, data []byte, v interface{}) (*ht
 
 	// Handle application errors that occur with blocking invocations when --result option is true (#5)
 	if err == nil && appErrResult.Error != nil {
-		Debug(DbgInfo, "Error code is null, blocking with result invocation error has occured\n")
+		Debug(DbgInfo, "Error code is null, blocking with result invocation error has occurred\n")
 		errMsg := fmt.Sprintf("%v", *appErrResult.Error)
 		Debug(DbgInfo, "Application error received: %s\n", errMsg)
 
