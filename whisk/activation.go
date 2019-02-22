@@ -23,6 +23,7 @@ import (
 	"github.com/apache/incubator-openwhisk-client-go/wski18n"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type ActivationService struct {
@@ -39,6 +40,7 @@ type Activation struct {
 	Start        int64  `json:"start"`    // When action started (in milliseconds since January 1, 1970 UTC)
 	End          int64  `json:"end"`      // Since a 0 is a valid value from server, don't omit
 	Duration     int64  `json:"duration"` // Only available for actions
+	StatusCode   uint8  `json:"statusCode"`
 	Response     `json:"response"`
 	Logs         []string    `json:"logs"`
 	Annotations  KeyValueArr `json:"annotations"`
@@ -70,6 +72,9 @@ type Log struct {
 	Time   string `json:"time,omitempty"`
 }
 
+// Status codes to descriptions
+var statusCodes = []string{"success", "application error", "developer error", "internal error"}
+
 // Compare(sortable) compares activation to sortable for the purpose of sorting.
 // REQUIRED: sortable must also be of type Activation.
 // ***Method of type Sortable***
@@ -80,14 +85,58 @@ func (activation Activation) Compare(sortable Sortable) bool {
 
 // ToHeaderString() returns the header for a list of activations
 func (activation Activation) ToHeaderString() string {
-	return fmt.Sprintf("%s\n", "activations")
+	return fmt.Sprintf("%-19s %-32s %-20s %-6s%-10s %-17s %-100s\n", "Datetime", "Activation ID", "Kind", "Start", "Duration", "Status", "Entity")
+}
+
+// TruncateStr() returns the string, truncated with ...in the middle if it exceeds the specified length
+func TruncateStr(str string, maxlen int) string {
+	if len(str) <= maxlen {
+		return str
+	} else {
+		mid := maxlen / 2
+		upp := len(str) - mid + 3
+		if maxlen%2 != 0 {
+			mid++
+		}
+		return str[0:mid] + "..." + str[upp:]
+	}
 }
 
 // ToSummaryRowString() returns a compound string of required parameters for printing
 //   from CLI command `wsk activation list`.
 // ***Method of type Sortable***
 func (activation Activation) ToSummaryRowString() string {
-	return fmt.Sprintf("%s %-20s\n", activation.ActivationID, activation.Name)
+	s := time.Unix(0, activation.Start*1000000)
+	e := time.Unix(0, activation.End*1000000)
+
+	var duration = e.Sub(s)
+	var kind interface{} = activation.Annotations.GetValue("kind")
+	var initTime interface{} = activation.Annotations.GetValue("initTime")
+	var status = statusCodes[0] // assume success
+	var start = "warm"          // assume warm
+
+	if activation.Duration == 0 {
+		duration = s.Sub(s)
+	}
+	if kind == nil {
+		kind = "unknown"
+	}
+	if activation.StatusCode > 0 && activation.StatusCode <= 3 {
+		status = statusCodes[activation.StatusCode]
+	}
+	if initTime != nil {
+		start = "cold"
+	}
+
+	return fmt.Sprintf(
+		"%d-%02d-%02d %02d:%02d:%02d %-32s %-20s %-5s %-10v %-17s %-100s\n",
+		s.Year(), s.Month(), s.Day(), s.Hour(), s.Minute(), s.Second(),
+		activation.ActivationID,
+		TruncateStr(kind.(string), 20),
+		start,
+		duration,
+		status,
+		TruncateStr(activation.Namespace, 30)+"/"+TruncateStr(activation.Name, 50)+":"+TruncateStr(activation.Version, 20))
 }
 
 func (s *ActivationService) List(options *ActivationListOptions) ([]Activation, *http.Response, error) {
@@ -122,7 +171,6 @@ func (s *ActivationService) List(options *ActivationListOptions) ([]Activation, 
 	}
 
 	return activations, resp, nil
-
 }
 
 func (s *ActivationService) Get(activationID string) (*Activation, *http.Response, error) {
@@ -211,5 +259,4 @@ func (s *ActivationService) Result(activationID string) (*Response, *http.Respon
 	}
 
 	return r, resp, nil
-
 }
