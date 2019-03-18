@@ -23,6 +23,7 @@ import (
 	"github.com/apache/incubator-openwhisk-client-go/wski18n"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -40,11 +41,17 @@ type Activation struct {
 	Start        int64  `json:"start"`    // When action started (in milliseconds since January 1, 1970 UTC)
 	End          int64  `json:"end"`      // Since a 0 is a valid value from server, don't omit
 	Duration     int64  `json:"duration"` // Only available for actions
-	StatusCode   uint8  `json:"statusCode"`
+	StatusCode   int    `json:"statusCode"`
 	Response     `json:"response"`
 	Logs         []string    `json:"logs"`
 	Annotations  KeyValueArr `json:"annotations"`
 	Publish      *bool       `json:"publish,omitempty"`
+}
+
+type ActivationFilteredRow struct {
+	Row       Activation
+	HeaderFmt string
+	RowFmt    string
 }
 
 type Response struct {
@@ -73,7 +80,7 @@ type Log struct {
 }
 
 // Status codes to descriptions
-var statusCodes = []string{"success", "application error", "developer error", "internal error"}
+var StatusCodes = []string{"success", "application error", "developer error", "internal error"}
 
 // Compare(sortable) compares activation to sortable for the purpose of sorting.
 // REQUIRED: sortable must also be of type Activation.
@@ -83,9 +90,17 @@ func (activation Activation) Compare(sortable Sortable) bool {
 	return true
 }
 
+// Compare(sortable) compares activation to sortable for the purpose of sorting.
+// REQUIRED: sortable must also be of type Activation.
+// ***Method of type Sortable***
+// ***Currently, no method of sorting defined***
+func (activation ActivationFilteredRow) Compare(sortable Sortable) bool {
+	return true
+}
+
 // ToHeaderString() returns the header for a list of activations
-func (activation Activation) ToHeaderString() string {
-	return fmt.Sprintf("%-19s %-32s %-20s %-6s%-10s %-17s %-100s\n", "Datetime", "Activation ID", "Kind", "Start", "Duration", "Status", "Entity")
+func (activation ActivationFilteredRow) ToHeaderString() string {
+	return fmt.Sprintf(activation.HeaderFmt, "Datetime", "Activation ID", "Kind", "Start", "Duration", "Status", "Entity")
 }
 
 // TruncateStr() returns the string, truncated with ...in the middle if it exceeds the specified length
@@ -105,38 +120,39 @@ func TruncateStr(str string, maxlen int) string {
 // ToSummaryRowString() returns a compound string of required parameters for printing
 //   from CLI command `wsk activation list`.
 // ***Method of type Sortable***
-func (activation Activation) ToSummaryRowString() string {
-	s := time.Unix(0, activation.Start*1000000)
-	e := time.Unix(0, activation.End*1000000)
+func (activation ActivationFilteredRow) ToSummaryRowString() string {
+	s := time.Unix(0, activation.Row.Start*1000000)
+	e := time.Unix(0, activation.Row.End*1000000)
 
 	var duration = e.Sub(s)
-	var kind interface{} = activation.Annotations.GetValue("kind")
-	var initTime interface{} = activation.Annotations.GetValue("initTime")
-	var status = statusCodes[0] // assume success
+	var kind interface{} = activation.Row.Annotations.GetValue("kind")
+	var initTime interface{} = activation.Row.Annotations.GetValue("initTime")
+	var status = StatusCodes[0] // assume success
 	var start = "warm"          // assume warm
+	var fqn = TruncateStr(activation.Row.Namespace, 20) + "/" + TruncateStr(activation.Row.Name, 30) + ":" + TruncateStr(activation.Row.Version, 20)
 
-	if activation.Duration == 0 {
+	if activation.Row.Duration == 0 {
 		duration = s.Sub(s)
 	}
 	if kind == nil {
 		kind = "unknown"
 	}
-	if activation.StatusCode > 0 && activation.StatusCode <= 3 {
-		status = statusCodes[activation.StatusCode]
+	if activation.Row.StatusCode > 0 && activation.Row.StatusCode < len(StatusCodes) {
+		status = StatusCodes[activation.Row.StatusCode]
 	}
 	if initTime != nil {
 		start = "cold"
 	}
 
 	return fmt.Sprintf(
-		"%d-%02d-%02d %02d:%02d:%02d %-32s %-20s %-5s %-10v %-17s %-100s\n",
+		activation.RowFmt+strconv.Itoa(len(fqn))+"s\n",
 		s.Year(), s.Month(), s.Day(), s.Hour(), s.Minute(), s.Second(),
-		activation.ActivationID,
-		TruncateStr(kind.(string), 20),
+		activation.Row.ActivationID,
+		kind.(string),
 		start,
 		duration,
 		status,
-		TruncateStr(activation.Namespace, 30)+"/"+TruncateStr(activation.Name, 50)+":"+TruncateStr(activation.Version, 20))
+		fqn)
 }
 
 func (s *ActivationService) List(options *ActivationListOptions) ([]Activation, *http.Response, error) {
