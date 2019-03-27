@@ -645,7 +645,7 @@ func parseSuccessResponse(resp *http.Response, data []byte, v interface{}) *http
 //     "code": "1422870"
 // }
 type ErrorResponse struct {
-	Response *http.Response // HTTP response that caused this error
+	Response *http.Response `json:"-"`     // HTTP response that caused this error
 	ErrMsg   *interface{}   `json:"error"` // error message string
 	Code     *interface{}   `json:"code"`  // validation error code (tid)
 }
