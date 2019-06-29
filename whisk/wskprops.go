@@ -69,7 +69,7 @@ func GetUrlBase(host string) (*url.URL, error) {
 	urlBase := fmt.Sprintf("%s/api", host)
 	url, err := url.Parse(urlBase)
 
-	if len(url.Scheme) == 0 || len(url.Host) == 0 {
+	if err != nil || len(url.Scheme) == 0 || len(url.Host) == 0 {
 		urlBase = fmt.Sprintf("https://%s/api", host)
 		url, err = url.Parse(urlBase)
 	}
