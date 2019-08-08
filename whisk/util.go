@@ -24,7 +24,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/apache/incubator-openwhisk-client-go/wski18n"
+	"github.com/apache/openwhisk-client-go/wski18n"
 	"github.com/fatih/color"
 	"github.com/google/go-querystring/query"
 	"github.com/hokaccha/go-prettyjson"

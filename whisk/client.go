@@ -35,7 +35,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/apache/incubator-openwhisk-client-go/wski18n"
+	"github.com/apache/openwhisk-client-go/wski18n"
 )
 
 const (

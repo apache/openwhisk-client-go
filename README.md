@@ -19,7 +19,7 @@
 
 # Openwhisk Client Go
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Build Status](https://travis-ci.org/apache/incubator-openwhisk-client-go.svg?branch=master)](https://travis-ci.org/apache/incubator-openwhisk-client-go)
+[![Build Status](https://travis-ci.org/apache/openwhisk-client-go.svg?branch=master)](https://travis-ci.org/apache/openwhisk-client-go)
 
 This project `openwhisk-client-go` is a Go client library to access Openwhisk API.
 
@@ -36,7 +36,7 @@ Make sure you select the package that fits your local environment, and [set the 
 ### Installation
 
 After you download the source code either from the Github or the release page of OpenWhisk, you should have a directory named
-_incubator-openwhisk-client-go_ to host all the source code. Please copy this root directory _incubator-openwhisk-client-go_
+_openwhisk-client-go_ to host all the source code. Please copy this root directory _openwhisk-client-go_
 into the directory $GOPATH/src/github.com/apache.
 
 
@@ -45,12 +45,12 @@ into the directory $GOPATH/src/github.com/apache.
 Open a terminal, and run the following commands to run the unit tests:
 
 ```
-$ cd $GOPATH/src/github.com/apache/incubator-openwhisk-client-go
+$ cd $GOPATH/src/github.com/apache/openwhisk-client-go
 $ govendor sync
 $ go test -v ./... -tags=unit
 ```
 
-You should see all the unit tests passed. If not, please [log an issue](https://github.com/apache/incubator-openwhisk-client-go/issues) for us.
+You should see all the unit tests passed. If not, please [log an issue](https://github.com/apache/openwhisk-client-go/issues) for us.
 
 
 ### Configuration
@@ -66,13 +66,13 @@ The parameter APIVERSION is the version of OpenWhisk API to be used to access th
 The parameter NAMESPACE is the OpenWhisk namespace used to specify the OpenWhisk resources about to be accessed.
 The parameter AUTH is the authentication key used to authenticate the incoming requests to the OpenWhisk services.
 
-For more information regarding the REST API of OpenWhisk, please refer to [OpenWhisk REST API](https://github.com/apache/incubator-openwhisk/blob/master/docs/rest_api.md).
+For more information regarding the REST API of OpenWhisk, please refer to [OpenWhisk REST API](https://github.com/apache/openwhisk/blob/master/docs/rest_api.md).
 
 
 ### Usage
 
 ```go
-import "github.com/apache/incubator-openwhisk-client-go/whisk"
+import "github.com/apache/openwhisk-client-go/whisk"
 ```
 
 Construct a new whisk client, then use various services to access different parts of the whisk api.  For example to get the `hello` action:
@@ -122,7 +122,7 @@ import (
   "net/http"
   "net/url"
 
-  "github.com/apache/incubator-openwhisk-client-go/whisk"
+  "github.com/apache/openwhisk-client-go/whisk"
 )
 
 func main() {
