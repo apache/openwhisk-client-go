@@ -103,7 +103,7 @@ func (viperImp FakeViperImp) AddConfigPath(in string) {
 func getCurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
-		return os.Getenv("GOPATH") + "/src/github.com/apache/incubator-openwhisk-client-go/whisk"
+		return os.Getenv("GOPATH") + "/src/github.com/apache/openwhisk-client-go/whisk"
 	}
 	return dir
 }
