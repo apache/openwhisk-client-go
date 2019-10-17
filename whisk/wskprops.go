@@ -43,6 +43,7 @@ const (
 	NAMESPACE          = "NAMESPACE"
 	AUTH               = "AUTH"
 	APIGW_ACCESS_TOKEN = "APIGW_ACCESS_TOKEN"
+	APIGW_TENANT_ID    = "APIGW_TENANT_ID"
 	APIVERSION         = "APIVERSION"
 	KEY                = "KEY"
 	CERT               = "CERT"
@@ -59,6 +60,7 @@ type Wskprops struct {
 	Namespace      string
 	AuthAPIGWKey   string
 	APIGWSpaceSuid string
+	APIGWTenantId  string
 	Apiversion     string
 	Key            string
 	Cert           string
@@ -177,6 +179,7 @@ func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
 		dep.AuthKey = GetValue(results, AUTH, dep.AuthKey)
 		dep.Namespace = GetValue(results, NAMESPACE, dep.Namespace)
 		dep.AuthAPIGWKey = GetValue(results, APIGW_ACCESS_TOKEN, dep.AuthAPIGWKey)
+		dep.APIGWTenantId = GetValue(results,APIGW_TENANT_ID, dep.APIGWTenantId)
 		if len(dep.AuthKey) > 0 {
 			dep.APIGWSpaceSuid = strings.Split(dep.AuthKey, ":")[0]
 		}
@@ -281,6 +284,7 @@ func GetDefaultWskprops(source string) *Wskprops {
 		AuthKey:        "",
 		Namespace:      DEFAULT_NAMESPACE,
 		AuthAPIGWKey:   "",
+		APIGWTenantId:  "",
 		APIGWSpaceSuid: "",
 		Apiversion:     DEFAULT_VERSION,
 		Key:            "",

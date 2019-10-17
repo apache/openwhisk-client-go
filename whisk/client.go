@@ -97,6 +97,7 @@ type Config struct {
 	Insecure          bool
 	UserAgent         string
 	ApigwAccessToken  string
+    ApigwTenantId     string
 	AdditionalHeaders http.Header
 }
 

@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -38,6 +40,7 @@ const (
 	EXPECTED_HOST              = EXPECTED_OPENWHISK_HOST + ":" + EXPECTED_OPENWHISK_PORT
 	EXPECTED_AUTH_API_KEY      = "EXPECTED_AUTH_API_KEY"
 	EXPECTED_API_GW_SPACE_SUID = "32kc46b1-71f6-4ed5-8c54-816aa4f8c502"
+	EXPECTED_APIGW_TENANT_ID   = "crn:v1:providername:public:servicename:region:a/1234567890abcdef0987654321fedcba:faaa50ec-dce9-4a23-9aaa-a8cb5c7648dc::"
 	APIGW_SPACE_SUID           = "APIGW_SPACE_SUID"
 	EXPECTED_API_VERSION       = "v1"
 	EXPECTED_CERT              = "EXPECTED_CERT"
@@ -120,6 +123,7 @@ func (pi FakePropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
 		Namespace:      GetValue(pi.StoredValues_LOCAL_CONF, NAMESPACE, ""),
 		AuthAPIGWKey:   GetValue(pi.StoredValues_LOCAL_CONF, APIGW_ACCESS_TOKEN, ""),
 		APIGWSpaceSuid: GetValue(pi.StoredValues_LOCAL_CONF, APIGW_SPACE_SUID, ""),
+		APIGWTenantId:  GetValue(pi.StoredValues_LOCAL_CONF, APIGW_TENANT_ID, ""),
 		Cert:           GetValue(pi.StoredValues_LOCAL_CONF, CERT, ""),
 		Key:            GetValue(pi.StoredValues_LOCAL_CONF, KEY, ""),
 		Apiversion:     GetValue(pi.StoredValues_LOCAL_CONF, APIVERSION, ""),
@@ -135,6 +139,7 @@ func (pi FakePropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
 		Namespace:      pi.StoredValues_WHISK[NAMESPACE],
 		AuthAPIGWKey:   pi.StoredValues_WHISK[APIGW_ACCESS_TOKEN],
 		APIGWSpaceSuid: pi.StoredValues_WHISK[APIGW_SPACE_SUID],
+		APIGWTenantId:  pi.StoredValues_WHISK[APIGW_TENANT_ID],
 		Cert:           pi.StoredValues_WHISK[CERT],
 		Key:            pi.StoredValues_WHISK[KEY],
 		Apiversion:     pi.StoredValues_WHISK[APIVERSION],
@@ -143,6 +148,7 @@ func (pi FakePropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
 }
 
 func CreateFile(lines []string, path string) error {
+	info("path", path)
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -150,6 +156,7 @@ func CreateFile(lines []string, path string) error {
 	defer file.Close()
 
 	w := bufio.NewWriter(file)
+	info("lines", lines)
 	for _, line := range lines {
 		fmt.Fprintln(w, line)
 	}
@@ -157,23 +164,39 @@ func CreateFile(lines []string, path string) error {
 }
 
 func DeleteFile(path string) error {
+	info("path", path)
 	return os.Remove(path)
 }
 
+func info(tag string, value interface{}) {
+	pc, fn, line, _ := runtime.Caller(1)
+	basicFile := fn[strings.LastIndex(fn, "/")+1:]
+	details := runtime.FuncForPC(pc)
+	basicFnName := details.Name()[strings.LastIndex(details.Name(), ".")+1:]
+	fmt.Printf("---\n[info] %s(%d): %s: %s=%+v\n", basicFile, line, basicFnName, tag, value)
+}
+
 func TestGetPropsFromWhiskProperties(t *testing.T) {
+
+	// Variant 1 ------------------------------------------------------------------
+
+	fmt.Printf("VARIANT 1 ------------------------------------------------------------------\n")
 	lines := []string{EXPECTED_TEST_AUTH_KEY}
 	CreateFile(lines, TEST_FILE)
-
 	fakeOSPackage := FakeOSPackage{
 		StoredValues: map[string]string{
 			OPENWHISK_HOME: getCurrentDir(),
 		},
 	}
+	info("fakeOSPackage", fakeOSPackage)
+
 	pi := PropertiesImp{
 		OsPackage: fakeOSPackage,
 	}
+	info("pi", pi)
 
 	dep := pi.GetPropsFromWhiskProperties()
+	info("dep", dep)
 	assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
 	assert.Equal(t, "", dep.AuthKey)
 	assert.Equal(t, "", dep.AuthAPIGWKey)
@@ -184,16 +207,20 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 	assert.Equal(t, "", dep.Cert)
 	assert.Equal(t, WHISK_PROPERTY, dep.Source)
 
+	DeleteFile(TEST_FILE)
+	// Variant 2 ------------------------------------------------------------------
+
+	fmt.Printf("VARIANT 2 ------------------------------------------------------------------\n")
 	lines = []string{TEST_AUTH_FILE + "=" + TEST_FILE, OPENWHISK_PRO + "=" + EXPECTED_OPENWHISK_PRO,
 		OPENWHISK_PORT + "=" + EXPECTED_OPENWHISK_PORT,
 		OPENWHISK_HOST + "=" + EXPECTED_OPENWHISK_HOST,
 	}
-
 	CreateFile(lines, OPENWHISK_PROPERTIES)
 	pi = PropertiesImp{
 		OsPackage: fakeOSPackage,
 	}
 	dep = pi.GetPropsFromWhiskProperties()
+	info("dep", dep)
 	assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
 	assert.Equal(t, EXPECTED_TEST_AUTH_KEY, dep.AuthKey)
 	assert.Equal(t, "", dep.AuthAPIGWKey)
@@ -207,6 +234,9 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 	DeleteFile(OPENWHISK_PROPERTIES)
 
 	DeleteFile(NON_EXISTING_TEST_FILE)
+
+	// Variant 3 ------------------------------------------------------------------
+	fmt.Printf("VARIANT 3 ------------------------------------------------------------------\n")
 	lines = []string{TEST_AUTH_FILE + "=" + NON_EXISTING_TEST_FILE, OPENWHISK_PRO + "=" + EXPECTED_OPENWHISK_PRO,
 		OPENWHISK_PORT + "=" + EXPECTED_OPENWHISK_PORT,
 		OPENWHISK_HOST + "=" + EXPECTED_OPENWHISK_HOST}
@@ -215,6 +245,7 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 		OsPackage: fakeOSPackage,
 	}
 	dep = pi.GetPropsFromWhiskProperties()
+	info("dep", dep)
 	assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
 	assert.Equal(t, "", dep.AuthKey)
 	assert.Equal(t, "", dep.AuthAPIGWKey)
@@ -226,14 +257,20 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 	assert.Equal(t, WHISK_PROPERTY, dep.Source)
 	DeleteFile(OPENWHISK_PROPERTIES)
 
-	DeleteFile(TEST_FILE)
+	//DeleteFile(TEST_FILE)
 }
 
 func TestGetPropsFromWskprops(t *testing.T) {
-	lines := []string{APIHOST + "=" + EXPECTED_HOST, AUTH + "=" + EXPECTED_TEST_AUTH_KEY,
+	lines := []string{APIHOST + "=" + EXPECTED_HOST,
+		AUTH + "=" + EXPECTED_TEST_AUTH_KEY,
 		NAMESPACE + "=" + DEFAULT_NAMESPACE,
-		APIGW_ACCESS_TOKEN + "=" + EXPECTED_AUTH_API_KEY, APIVERSION + "=" + EXPECTED_API_VERSION,
-		KEY + "=" + EXPECTED_KEY, CERT + "=" + EXPECTED_CERT}
+		APIGW_ACCESS_TOKEN + "=" + EXPECTED_AUTH_API_KEY,
+		APIVERSION + "=" + EXPECTED_API_VERSION,
+		KEY + "=" + EXPECTED_KEY,
+		CERT + "=" + EXPECTED_CERT}
+
+	info("lines", lines)
+
 	CreateFile(lines, DEFAULT_LOCAL_CONFIG)
 
 	fakeOSPackage := FakeOSPackage{
