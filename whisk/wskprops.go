@@ -179,7 +179,7 @@ func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
 		dep.AuthKey = GetValue(results, AUTH, dep.AuthKey)
 		dep.Namespace = GetValue(results, NAMESPACE, dep.Namespace)
 		dep.AuthAPIGWKey = GetValue(results, APIGW_ACCESS_TOKEN, dep.AuthAPIGWKey)
-		dep.APIGWTenantId = GetValue(results,APIGW_TENANT_ID, dep.APIGWTenantId)
+		dep.APIGWTenantId = GetValue(results, APIGW_TENANT_ID, dep.APIGWTenantId)
 		if len(dep.AuthKey) > 0 {
 			dep.APIGWSpaceSuid = strings.Split(dep.AuthKey, ":")[0]
 		}
