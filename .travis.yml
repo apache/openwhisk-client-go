@@ -21,9 +21,9 @@ matrix:
     include:
         - os: linux
           sudo: required
-          group: deprecated-2017Q3
           go: "1.9.3"
           services: docker
+          dist: xenial
 
 git:
   depth: 3
@@ -39,7 +39,8 @@ before_install:
   - cd $TRAVIS_BUILD_DIR
   - GO_FILES=$(find . -iname '*.go' -type f | grep -v /vendor/)
   - test -z "$(gofmt -s -l $(echo $GO_FILES))"
-  - pip install --upgrade pip setuptools
+  #- pip install --upgrade pip setuptools
+  - pip install --user --upgrade pip setuptools
   - ./tools/travis/setup.sh
 
 install:

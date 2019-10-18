@@ -40,13 +40,14 @@ const (
 	DEFAULT_VERSION      = "v1"
 	DEFAULT_NAMESPACE    = "_"
 
-	NAMESPACE          = "NAMESPACE"
-	AUTH               = "AUTH"
 	APIGW_ACCESS_TOKEN = "APIGW_ACCESS_TOKEN"
-	APIVERSION         = "APIVERSION"
-	KEY                = "KEY"
-	CERT               = "CERT"
+	APIGW_TENANT_ID    = "APIGW_TENANT_ID"
 	APIHOST            = "APIHOST"
+	APIVERSION         = "APIVERSION"
+	AUTH               = "AUTH"
+	CERT               = "CERT"
+	KEY                = "KEY"
+	NAMESPACE          = "NAMESPACE"
 
 	DEFAULT_SOURCE = "wsk props"
 	WSKPROP        = "wsk props"
@@ -54,14 +55,15 @@ const (
 )
 
 type Wskprops struct {
-	APIHost        string
-	AuthKey        string
-	Namespace      string
-	AuthAPIGWKey   string
 	APIGWSpaceSuid string
+	APIGWTenantId  string
+	APIHost        string
 	Apiversion     string
-	Key            string
+	AuthAPIGWKey   string
+	AuthKey        string
 	Cert           string
+	Key            string
+	Namespace      string
 	Source         string
 }
 
@@ -177,6 +179,7 @@ func (pi PropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
 		dep.AuthKey = GetValue(results, AUTH, dep.AuthKey)
 		dep.Namespace = GetValue(results, NAMESPACE, dep.Namespace)
 		dep.AuthAPIGWKey = GetValue(results, APIGW_ACCESS_TOKEN, dep.AuthAPIGWKey)
+		dep.APIGWTenantId = GetValue(results, APIGW_TENANT_ID, dep.APIGWTenantId)
 		if len(dep.AuthKey) > 0 {
 			dep.APIGWSpaceSuid = strings.Split(dep.AuthKey, ":")[0]
 		}
@@ -194,6 +197,7 @@ func (pi PropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
 	results, err := ReadProps(path)
 
 	if err == nil {
+		// TODO Determine why we have a hardcoed "test.auth" file here, is this only for unit tests? documented?
 		authPath := GetValue(results, TEST_AUTH_FILE, "")
 		b, err := ioutil.ReadFile(authPath)
 		if err == nil {
@@ -281,6 +285,7 @@ func GetDefaultWskprops(source string) *Wskprops {
 		AuthKey:        "",
 		Namespace:      DEFAULT_NAMESPACE,
 		AuthAPIGWKey:   "",
+		APIGWTenantId:  "",
 		APIGWSpaceSuid: "",
 		Apiversion:     DEFAULT_VERSION,
 		Key:            "",
