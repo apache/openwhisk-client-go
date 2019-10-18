@@ -24,8 +24,6 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"os"
-	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -161,7 +159,6 @@ func CreateFile(lines []string, path string) error {
 }
 
 func DeleteFile(path string) error {
-	info("path", path)
 	return os.Remove(path)
 }
 
@@ -258,8 +255,6 @@ func TestGetPropsFromWskprops(t *testing.T) {
 		KEY + "=" + EXPECTED_KEY,
 		NAMESPACE + "=" + DEFAULT_NAMESPACE,
 	}
-
-	info("lines", lines)
 
 	CreateFile(lines, DEFAULT_LOCAL_CONFIG)
 
