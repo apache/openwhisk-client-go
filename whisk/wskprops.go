@@ -40,14 +40,14 @@ const (
 	DEFAULT_VERSION      = "v1"
 	DEFAULT_NAMESPACE    = "_"
 
-	NAMESPACE          = "NAMESPACE"
-	AUTH               = "AUTH"
 	APIGW_ACCESS_TOKEN = "APIGW_ACCESS_TOKEN"
 	APIGW_TENANT_ID    = "APIGW_TENANT_ID"
-	APIVERSION         = "APIVERSION"
-	KEY                = "KEY"
-	CERT               = "CERT"
 	APIHOST            = "APIHOST"
+	APIVERSION         = "APIVERSION"
+	AUTH               = "AUTH"
+	CERT               = "CERT"
+	KEY                = "KEY"
+	NAMESPACE          = "NAMESPACE"
 
 	DEFAULT_SOURCE = "wsk props"
 	WSKPROP        = "wsk props"
@@ -55,15 +55,15 @@ const (
 )
 
 type Wskprops struct {
-	APIHost        string
-	AuthKey        string
-	Namespace      string
-	AuthAPIGWKey   string
 	APIGWSpaceSuid string
 	APIGWTenantId  string
+	APIHost        string
 	Apiversion     string
-	Key            string
+	AuthAPIGWKey   string
+	AuthKey        string
 	Cert           string
+	Key            string
+	Namespace      string
 	Source         string
 }
 
@@ -197,6 +197,7 @@ func (pi PropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
 	results, err := ReadProps(path)
 
 	if err == nil {
+		// TODO Determine why we have a hardcoed "test.auth" file here, is this only for unit tests? documented?
 		authPath := GetValue(results, TEST_AUTH_FILE, "")
 		b, err := ioutil.ReadFile(authPath)
 		if err == nil {

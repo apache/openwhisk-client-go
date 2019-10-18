@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	TEST_FILE                  = "TEST_AUTH_FILE"
+	TEST_AUTH_FILE_NAME        = "TEST_AUTH_FILE"
 	NON_EXISTING_TEST_FILE     = "NON_EXISTING_TEST_FILE"
 	EXPECTED_OPENWHISK_HOST    = "192.168.9.100"
 	EXPECTED_OPENWHISK_PORT    = "443"
@@ -118,31 +118,30 @@ type FakePropertiesImp struct {
 
 func (pi FakePropertiesImp) GetPropsFromWskprops(path string) *Wskprops {
 	dep := Wskprops{
-		APIHost:        GetValue(pi.StoredValues_LOCAL_CONF, APIHOST, ""),
-		AuthKey:        GetValue(pi.StoredValues_LOCAL_CONF, AUTH, ""),
-		Namespace:      GetValue(pi.StoredValues_LOCAL_CONF, NAMESPACE, ""),
-		AuthAPIGWKey:   GetValue(pi.StoredValues_LOCAL_CONF, APIGW_ACCESS_TOKEN, ""),
 		APIGWSpaceSuid: GetValue(pi.StoredValues_LOCAL_CONF, APIGW_SPACE_SUID, ""),
 		APIGWTenantId:  GetValue(pi.StoredValues_LOCAL_CONF, APIGW_TENANT_ID, ""),
+		APIHost:        GetValue(pi.StoredValues_LOCAL_CONF, APIHOST, ""),
+		Apiversion:     GetValue(pi.StoredValues_LOCAL_CONF, APIVERSION, ""),
+		AuthAPIGWKey:   GetValue(pi.StoredValues_LOCAL_CONF, APIGW_ACCESS_TOKEN, ""),
+		AuthKey:        GetValue(pi.StoredValues_LOCAL_CONF, AUTH, ""),
 		Cert:           GetValue(pi.StoredValues_LOCAL_CONF, CERT, ""),
 		Key:            GetValue(pi.StoredValues_LOCAL_CONF, KEY, ""),
-		Apiversion:     GetValue(pi.StoredValues_LOCAL_CONF, APIVERSION, ""),
+		Namespace:      GetValue(pi.StoredValues_LOCAL_CONF, NAMESPACE, ""),
 	}
-
 	return &dep
 }
 
 func (pi FakePropertiesImp) GetPropsFromWhiskProperties() *Wskprops {
 	dep := Wskprops{
-		APIHost:        pi.StoredValues_WHISK[APIHOST],
-		AuthKey:        pi.StoredValues_WHISK[AUTH],
-		Namespace:      pi.StoredValues_WHISK[NAMESPACE],
-		AuthAPIGWKey:   pi.StoredValues_WHISK[APIGW_ACCESS_TOKEN],
 		APIGWSpaceSuid: pi.StoredValues_WHISK[APIGW_SPACE_SUID],
 		APIGWTenantId:  pi.StoredValues_WHISK[APIGW_TENANT_ID],
+		APIHost:        pi.StoredValues_WHISK[APIHOST],
+		Apiversion:     pi.StoredValues_WHISK[APIVERSION],
+		AuthAPIGWKey:   pi.StoredValues_WHISK[APIGW_ACCESS_TOKEN],
+		AuthKey:        pi.StoredValues_WHISK[AUTH],
 		Cert:           pi.StoredValues_WHISK[CERT],
 		Key:            pi.StoredValues_WHISK[KEY],
-		Apiversion:     pi.StoredValues_WHISK[APIVERSION],
+		Namespace:      pi.StoredValues_WHISK[NAMESPACE],
 	}
 	return &dep
 }
@@ -182,7 +181,8 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 
 	fmt.Printf("VARIANT 1 ------------------------------------------------------------------\n")
 	lines := []string{EXPECTED_TEST_AUTH_KEY}
-	CreateFile(lines, TEST_FILE)
+	CreateFile(lines, TEST_AUTH_FILE_NAME)
+
 	fakeOSPackage := FakeOSPackage{
 		StoredValues: map[string]string{
 			OPENWHISK_HOME: getCurrentDir(),
@@ -207,18 +207,21 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 	assert.Equal(t, "", dep.Cert)
 	assert.Equal(t, WHISK_PROPERTY, dep.Source)
 
-	DeleteFile(TEST_FILE)
 	// Variant 2 ------------------------------------------------------------------
 
 	fmt.Printf("VARIANT 2 ------------------------------------------------------------------\n")
-	lines = []string{TEST_AUTH_FILE + "=" + TEST_FILE, OPENWHISK_PRO + "=" + EXPECTED_OPENWHISK_PRO,
-		OPENWHISK_PORT + "=" + EXPECTED_OPENWHISK_PORT,
+	lines = []string{
 		OPENWHISK_HOST + "=" + EXPECTED_OPENWHISK_HOST,
+		OPENWHISK_PORT + "=" + EXPECTED_OPENWHISK_PORT,
+		OPENWHISK_PRO + "=" + EXPECTED_OPENWHISK_PRO,
+		TEST_AUTH_FILE + "=" + TEST_AUTH_FILE_NAME,
 	}
 	CreateFile(lines, OPENWHISK_PROPERTIES)
+
 	pi = PropertiesImp{
 		OsPackage: fakeOSPackage,
 	}
+
 	dep = pi.GetPropsFromWhiskProperties()
 	info("dep", dep)
 	assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
@@ -232,18 +235,24 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 	assert.Equal(t, WHISK_PROPERTY, dep.Source)
 
 	DeleteFile(OPENWHISK_PROPERTIES)
-
+	DeleteFile(TEST_AUTH_FILE_NAME)
+	// Make sure the "non-existant" test.auth key file really does not exist
 	DeleteFile(NON_EXISTING_TEST_FILE)
 
 	// Variant 3 ------------------------------------------------------------------
 	fmt.Printf("VARIANT 3 ------------------------------------------------------------------\n")
-	lines = []string{TEST_AUTH_FILE + "=" + NON_EXISTING_TEST_FILE, OPENWHISK_PRO + "=" + EXPECTED_OPENWHISK_PRO,
+	lines = []string{
+		OPENWHISK_HOST + "=" + EXPECTED_OPENWHISK_HOST,
 		OPENWHISK_PORT + "=" + EXPECTED_OPENWHISK_PORT,
-		OPENWHISK_HOST + "=" + EXPECTED_OPENWHISK_HOST}
+		OPENWHISK_PRO + "=" + EXPECTED_OPENWHISK_PRO,
+		TEST_AUTH_FILE + "=" + NON_EXISTING_TEST_FILE,
+	}
+
 	CreateFile(lines, OPENWHISK_PROPERTIES)
 	pi = PropertiesImp{
 		OsPackage: fakeOSPackage,
 	}
+
 	dep = pi.GetPropsFromWhiskProperties()
 	info("dep", dep)
 	assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
@@ -257,17 +266,19 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 	assert.Equal(t, WHISK_PROPERTY, dep.Source)
 	DeleteFile(OPENWHISK_PROPERTIES)
 
-	//DeleteFile(TEST_FILE)
 }
 
 func TestGetPropsFromWskprops(t *testing.T) {
-	lines := []string{APIHOST + "=" + EXPECTED_HOST,
-		AUTH + "=" + EXPECTED_TEST_AUTH_KEY,
-		NAMESPACE + "=" + DEFAULT_NAMESPACE,
+	lines := []string{
 		APIGW_ACCESS_TOKEN + "=" + EXPECTED_AUTH_API_KEY,
+		APIGW_TENANT_ID + "=" + EXPECTED_APIGW_TENANT_ID,
+		APIHOST + "=" + EXPECTED_HOST,
 		APIVERSION + "=" + EXPECTED_API_VERSION,
+		AUTH + "=" + EXPECTED_TEST_AUTH_KEY,
+		CERT + "=" + EXPECTED_CERT,
 		KEY + "=" + EXPECTED_KEY,
-		CERT + "=" + EXPECTED_CERT}
+		NAMESPACE + "=" + DEFAULT_NAMESPACE,
+	}
 
 	info("lines", lines)
 
@@ -296,13 +307,14 @@ func TestGetPropsFromWskprops(t *testing.T) {
 	path := getCurrentDir() + "/" + DEFAULT_LOCAL_CONFIG
 	dep = pi.GetPropsFromWskprops(path)
 	assert.Equal(t, DEFAULT_NAMESPACE, dep.Namespace)
-	assert.Equal(t, EXPECTED_TEST_AUTH_KEY, dep.AuthKey)
-	assert.Equal(t, EXPECTED_AUTH_API_KEY, dep.AuthAPIGWKey)
-	assert.Equal(t, EXPECTED_HOST, dep.APIHost)
 	assert.Equal(t, EXPECTED_API_GW_SPACE_SUID, dep.APIGWSpaceSuid)
+	assert.Equal(t, EXPECTED_APIGW_TENANT_ID, dep.APIGWTenantId)
 	assert.Equal(t, EXPECTED_API_VERSION, dep.Apiversion)
-	assert.Equal(t, EXPECTED_KEY, dep.Key)
+	assert.Equal(t, EXPECTED_AUTH_API_KEY, dep.AuthAPIGWKey)
 	assert.Equal(t, EXPECTED_CERT, dep.Cert)
+	assert.Equal(t, EXPECTED_HOST, dep.APIHost)
+	assert.Equal(t, EXPECTED_KEY, dep.Key)
+	assert.Equal(t, EXPECTED_TEST_AUTH_KEY, dep.AuthKey)
 	assert.Equal(t, WSKPROP, dep.Source)
 
 	DeleteFile(DEFAULT_LOCAL_CONFIG)
