@@ -21,7 +21,7 @@ matrix:
     include:
         - os: linux
           sudo: required
-          group: deprecated-2017Q3
+          dist: xenial
           go: "1.9.3"
           services: docker
 
