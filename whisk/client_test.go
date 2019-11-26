@@ -168,3 +168,22 @@ func TestAdditionalHeaders(t *testing.T) {
 	assert.Equal(t, "Value1", newRequestUrl.Header.Get("Key1"))
 	assert.Equal(t, "Value2", newRequestUrl.Header.Get("Key2"))
 }
+
+func TestParseApplicationError(t *testing.T) {
+    appErr1 := map[string]interface{} {
+        "error": map[string]interface{} {
+            "error": "An error string",
+            "message": "An error message",
+        },
+    }
+
+    appErr2 := map[string]interface{} {
+        "error": "Another error string",
+    }
+
+    errStr := getApplicationErrorMessage(appErr1)
+    assert.Equal(t, "An error string; An error message", errStr)
+
+    errStr = getApplicationErrorMessage(appErr2)
+    assert.Equal(t, "Another error string", errStr)
+}

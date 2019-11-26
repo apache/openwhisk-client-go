@@ -586,10 +586,12 @@ func parseApplicationError(resp *http.Response, data []byte, v interface{}) (*ht
 	// Handle application errors that occur when --result option is false (#5)
 	if err == nil && whiskErrorResponse != nil && whiskErrorResponse.Response != nil && whiskErrorResponse.Response.Status != nil {
 		Debug(DbgInfo, "Detected response status `%s` that a whisk.error(\"%#v\") was returned\n",
-			*whiskErrorResponse.Response.Status, *whiskErrorResponse.Response.Result)
+			*whiskErrorResponse.Response.Status, whiskErrorResponse.Response.Result)
+		errStr := getApplicationErrorMessage(whiskErrorResponse.Response.Result)
+		Debug(DbgInfo, "Application error received: %s\n", errStr)
 		errMsg := wski18n.T("The following application error was received: {{.err}}",
-			map[string]interface{}{"err": *whiskErrorResponse.Response.Result})
-		whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode-256, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
+			map[string]interface{}{"err": errStr})
+		whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode-256, DISPLAY_MSG, NO_DISPLAY_USAGE,
 			NO_MSG_DISPLAYED, DISPLAY_PREFIX, APPLICATION_ERR)
 		return parseSuccessResponse(resp, data, v), whiskErr
 	}
@@ -600,10 +602,10 @@ func parseApplicationError(resp *http.Response, data []byte, v interface{}) (*ht
 	// Handle application errors that occur with blocking invocations when --result option is true (#5)
 	if err == nil && appErrResult.Error != nil {
 		Debug(DbgInfo, "Error code is null, blocking with result invocation error has occurred\n")
-		errMsg := fmt.Sprintf("%v", *appErrResult.Error)
-		Debug(DbgInfo, "Application error received: %s\n", errMsg)
+		errStr := getApplicationErrorMessage(*appErrResult.Error)
+		Debug(DbgInfo, "Application error received: %s\n", errStr)
 
-		whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode-256, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
+		whiskErr := MakeWskError(errors.New(errStr), resp.StatusCode-256, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
 			NO_MSG_DISPLAYED, DISPLAY_PREFIX, APPLICATION_ERR)
 		return parseSuccessResponse(resp, data, v), whiskErr
 	}
@@ -616,6 +618,55 @@ func parseApplicationError(resp *http.Response, data []byte, v interface{}) (*ht
 	return resp, whiskErr
 }
 
+func getApplicationErrorMessage(errResp interface{}) string {
+	var errStr string
+	// Handle error results that looks like
+	//   {
+	//     "result": {
+	//       "error": {
+	//         "error": "An error string",
+	//         "message": "An error message",
+	//         "another-message": "Another error message"
+	//       }
+	//     }
+	//   }
+	//
+	// OR
+	//   {
+	//     "error": "An error string"
+	//   }
+	errMapIntf, errMapIntfOk := errResp.(map[string]interface{})
+	if !errMapIntfOk {
+		errStr = fmt.Sprintf("%v", errResp)
+	} else {
+		errObjIntf, errObjIntfOk := errMapIntf["error"]
+		if !errObjIntfOk {
+			errStr = fmt.Sprintf("%v", errObjIntf)
+		} else {
+			errObj, errObjOk := errObjIntf.(map[string]interface{})
+			if !errObjOk {
+				errorStr, errorStrOk := errObjIntf.(string)
+				if !errorStrOk {
+					errStr = fmt.Sprintf("%v", errObjIntf)
+				} else {
+					errStr = errorStr
+				}
+			} else {
+				Debug(DbgInfo, "Application failure error json: %+v\n", errObj)
+				// Concatenate all string field values into a single error string
+				msgSeparator := ""
+				for _, val := range errObj {
+					valStr, valStrOk := val.(string)
+					if valStrOk {
+						errStr = errStr + msgSeparator + valStr
+						msgSeparator = "; "
+					}
+				}
+			}
+		}
+	}
+	return errStr
+}
 func parseSuccessResponse(resp *http.Response, data []byte, v interface{}) *http.Response {
 	Debug(DbgInfo, "Parsing HTTP response into struct type: %s\n", reflect.TypeOf(v))
 
@@ -660,9 +711,9 @@ type WhiskErrorResponse struct {
 }
 
 type WhiskResponse struct {
-	Result  *WhiskResult `json:"result"`
-	Success bool         `json:"success"`
-	Status  *interface{} `json:"status"`
+	Result  map[string]interface{} `json:"result"`
+	Success bool                   `json:"success"`
+	Status  *interface{}           `json:"status"`
 }
 
 type WhiskResult struct {
