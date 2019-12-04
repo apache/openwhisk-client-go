@@ -587,11 +587,13 @@ func parseApplicationError(resp *http.Response, data []byte, v interface{}) (*ht
 	if err == nil && whiskErrorResponse != nil && whiskErrorResponse.Response != nil && whiskErrorResponse.Response.Status != nil {
 		Debug(DbgInfo, "Detected response status `%s` that a whisk.error(\"%#v\") was returned\n",
 			*whiskErrorResponse.Response.Status, whiskErrorResponse.Response.Result)
+
 		errStr := getApplicationErrorMessage(whiskErrorResponse.Response.Result)
 		Debug(DbgInfo, "Application error received: %s\n", errStr)
+
 		errMsg := wski18n.T("The following application error was received: {{.err}}",
 			map[string]interface{}{"err": errStr})
-		whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode-256, DISPLAY_MSG, NO_DISPLAY_USAGE,
+		whiskErr := MakeWskError(errors.New(errMsg), resp.StatusCode-256, NO_DISPLAY_MSG, NO_DISPLAY_USAGE,
 			NO_MSG_DISPLAYED, DISPLAY_PREFIX, APPLICATION_ERR)
 		return parseSuccessResponse(resp, data, v), whiskErr
 	}
@@ -620,31 +622,48 @@ func parseApplicationError(resp *http.Response, data []byte, v interface{}) (*ht
 
 func getApplicationErrorMessage(errResp interface{}) string {
 	var errStr string
-	// Handle error results that looks like
+
+	// Handle error results that looks like:
+	//
 	//   {
-	//     "result": {
-	//       "error": {
-	//         "error": "An error string",
-	//         "message": "An error message",
-	//         "another-message": "Another error message"
-	//       }
+	//     "error": {
+	//       "error": "An error string",
+	//       "message": "An error message",
+	//       "another-message": "Another error message"
 	//     }
 	//   }
+	//   Returns "An error string; An error message; Another error message"
 	//
 	// OR
 	//   {
 	//     "error": "An error string"
 	//   }
+	//   Returns "An error string"
+	//
+	// OR
+	//   {
+	//     "error": {
+	//       "custom-err": {
+	//         "error": "An error string",
+	//         "message": "An error message"
+	//       }
+	//     }
+	//   }
+	//   Returns "{"error": { "custom-err": { "error": "An error string", "message": "An error message" } } }"
+
 	errMapIntf, errMapIntfOk := errResp.(map[string]interface{})
 	if !errMapIntfOk {
 		errStr = fmt.Sprintf("%v", errResp)
 	} else {
+		// Check if the "error" field in the response JSON
 		errObjIntf, errObjIntfOk := errMapIntf["error"]
 		if !errObjIntfOk {
-			errStr = fmt.Sprintf("%v", errObjIntf)
+			errStr = fmt.Sprintf("%v", errMapIntf)
 		} else {
+			// Check if the "error" field value is a JSON object
 			errObj, errObjOk := errObjIntf.(map[string]interface{})
 			if !errObjOk {
+				// The "error" field value is not JSON; check if it's a string
 				errorStr, errorStrOk := errObjIntf.(string)
 				if !errorStrOk {
 					errStr = fmt.Sprintf("%v", errObjIntf)
@@ -653,6 +672,7 @@ func getApplicationErrorMessage(errResp interface{}) string {
 				}
 			} else {
 				Debug(DbgInfo, "Application failure error json: %+v\n", errObj)
+
 				// Concatenate all string field values into a single error string
 				msgSeparator := ""
 				for _, val := range errObj {
@@ -662,9 +682,21 @@ func getApplicationErrorMessage(errResp interface{}) string {
 						msgSeparator = "; "
 					}
 				}
+
+				// If no top level string fields exist, return the entire error object
+				// Return a nice JSON string if possible; otherwise let Go try it's best
+				if len(errStr) == 0 {
+					jsonBytes, err := json.Marshal(errObj)
+					if err != nil {
+						errStr = fmt.Sprintf("%v", errObj)
+					} else {
+						errStr = string(jsonBytes)
+					}
+				}
 			}
 		}
 	}
+
 	return errStr
 }
 func parseSuccessResponse(resp *http.Response, data []byte, v interface{}) *http.Response {
