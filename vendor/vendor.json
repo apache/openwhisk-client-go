@@ -3,78 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "QTzx12uuB3JeMMvBE8EJH+4PTsI=",
-			"path": "github.com/cloudfoundry/jibber_jabber",
-			"revision": "bcc4c8345a21301bf47c032ff42dd1aae2fe3027",
-			"revisionTime": "2015-11-20T18:32:58Z"
-		},
-		{
 			"checksumSHA1": "CSPbwbyzqA6sfORicn4HFtIhF/c=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "d8f796af33cc11cb798c1aaeb27a4ebc5099927d",
 			"revisionTime": "2018-08-30T19:11:22Z"
-		},
-		{
-			"checksumSHA1": "/Mf+e6NMbRCrJ/e1AeoinE+p07M=",
-			"path": "github.com/fatih/color",
-			"revision": "3f9d52f7176a6927daacff70a3e8d1dc2025c53e",
-			"revisionTime": "2018-10-10T23:13:11Z"
-		},
-		{
-			"checksumSHA1": "ZXja1pB/YvDYcNpkp7AtOm1mhgk=",
-			"path": "github.com/google/go-querystring/query",
-			"revision": "c8c88dbee036db4e4808d1f2ec8c2e15e11c3f80",
-			"revisionTime": "2019-03-18T16:54:38Z"
-		},
-		{
-			"checksumSHA1": "dVV4ukmH+uUbD4wKMHAEhaLDSfU=",
-			"path": "github.com/hokaccha/go-prettyjson",
-			"revision": "108c894c2c0e4a3236172e3698c14f1e3199548d",
-			"revisionTime": "2019-08-18T11:41:11Z"
-		},
-		{
-			"checksumSHA1": "ItosiW1ZCzvmd9fmeNxUQ3E9Wqk=",
-			"origin": "github.com/fatih/color/vendor/github.com/mattn/go-colorable",
-			"path": "github.com/mattn/go-colorable",
-			"revision": "3f9d52f7176a6927daacff70a3e8d1dc2025c53e",
-			"revisionTime": "2018-10-10T23:13:11Z"
-		},
-		{
-			"checksumSHA1": "bZ69Fu47mpdJ30Y5DMfR8IsIc0E=",
-			"origin": "github.com/fatih/color/vendor/github.com/mattn/go-isatty",
-			"path": "github.com/mattn/go-isatty",
-			"revision": "3f9d52f7176a6927daacff70a3e8d1dc2025c53e",
-			"revisionTime": "2018-10-10T23:13:11Z"
-		},
-		{
-			"checksumSHA1": "ouhcUx95SEmb6Qbc8JqwMmm2P8g=",
-			"path": "github.com/nicksnyder/go-i18n/i18n",
-			"revision": "3c6ee9071cf061f4b0101e14412f74d6e7a8ada6",
-			"revisionTime": "2019-05-19T16:33:03Z"
-		},
-		{
-			"checksumSHA1": "OD4eEworJJQBRiLsG18RmHkX9dc=",
-			"path": "github.com/nicksnyder/go-i18n/i18n/bundle",
-			"revision": "3c6ee9071cf061f4b0101e14412f74d6e7a8ada6",
-			"revisionTime": "2019-05-19T16:33:03Z"
-		},
-		{
-			"checksumSHA1": "RXZ1/rouUfm/u2OL7EWzWYusW4s=",
-			"path": "github.com/nicksnyder/go-i18n/i18n/language",
-			"revision": "3c6ee9071cf061f4b0101e14412f74d6e7a8ada6",
-			"revisionTime": "2019-05-19T16:33:03Z"
-		},
-		{
-			"checksumSHA1": "AiyiOd0qj69bgYHwPXMsxz4AgkE=",
-			"path": "github.com/nicksnyder/go-i18n/i18n/translation",
-			"revision": "3c6ee9071cf061f4b0101e14412f74d6e7a8ada6",
-			"revisionTime": "2019-05-19T16:33:03Z"
-		},
-		{
-			"checksumSHA1": "vZUFEQF4MtljaQlj1QHLRQS7bbQ=",
-			"path": "github.com/pelletier/go-toml",
-			"revision": "6f6ca416216a6b6dfee682275111b8b6bb6f8d58",
-			"revisionTime": "2019-11-21T02:21:26Z"
 		},
 		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
@@ -87,19 +19,6 @@
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "363ebb24d041ccea8068222281c2e963e997b9dc",
 			"revisionTime": "2019-01-09T08:30:14Z"
-		},
-		{
-			"checksumSHA1": "CNHEeGnucEUlTHJrLS2kHtfNbws=",
-			"origin": "github.com/fatih/color/vendor/golang.org/x/sys/unix",
-			"path": "golang.org/x/sys/unix",
-			"revision": "3f9d52f7176a6927daacff70a3e8d1dc2025c53e",
-			"revisionTime": "2018-10-10T23:13:11Z"
-		},
-		{
-			"checksumSHA1": "jqxUk8Hr4ZJt4+vY46Ctgl+7uPc=",
-			"path": "gopkg.in/yaml.v2",
-			"revision": "1f64d6156d11335c3f22d9330b0ad14fc1e789ce",
-			"revisionTime": "2019-11-19T21:27:36Z"
 		}
 	],
 	"rootPath": "github.com/apache/openwhisk-client-go"
