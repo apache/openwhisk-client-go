@@ -41,6 +41,7 @@ type Action struct {
 	Error       string      `json:"error,omitempty"`
 	Code        int         `json:"code,omitempty"`
 	Publish     *bool       `json:"publish,omitempty"`
+	Updated     int64       `json:"updated,omitempty"`
 }
 
 type Exec struct {
