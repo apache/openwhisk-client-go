@@ -39,6 +39,7 @@ type Rule struct {
 	Trigger     interface{} `json:"trigger"`
 	Action      interface{} `json:"action"`
 	Publish     *bool       `json:"publish,omitempty"`
+	Updated     int64       `json:"updated,omitempty"`
 }
 
 type RuleListOptions struct {
