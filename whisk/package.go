@@ -46,6 +46,7 @@ type Package struct {
 	Binding     *Binding    `json:"binding,omitempty"`
 	Actions     []Action    `json:"actions,omitempty"`
 	Feeds       []Action    `json:"feeds,omitempty"`
+	Updated     int64       `json:"updated,omitempty"`
 }
 
 func (p *Package) GetName() string {

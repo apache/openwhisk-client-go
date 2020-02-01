@@ -40,6 +40,7 @@ type Trigger struct {
 	Limits       *Limits                `json:"limits,omitempty"`
 	Publish      *bool                  `json:"publish,omitempty"`
 	Rules        map[string]interface{} `json:"rules,omitempty"`
+	Updated      int64                  `json:"updated,omitempty"`
 }
 
 type TriggerListOptions struct {
