@@ -31,17 +31,18 @@ type ActionService struct {
 }
 
 type Action struct {
-	Namespace   string      `json:"namespace,omitempty"`
-	Name        string      `json:"name,omitempty"`
-	Version     string      `json:"version,omitempty"`
-	Exec        *Exec       `json:"exec,omitempty"`
-	Annotations KeyValueArr `json:"annotations,omitempty"`
-	Parameters  KeyValueArr `json:"parameters,omitempty"`
-	Limits      *Limits     `json:"limits,omitempty"`
-	Error       string      `json:"error,omitempty"`
-	Code        int         `json:"code,omitempty"`
-	Publish     *bool       `json:"publish,omitempty"`
-	Updated     int64       `json:"updated,omitempty"`
+	Namespace      string      `json:"namespace,omitempty"`
+	Name           string      `json:"name,omitempty"`
+	Version        string      `json:"version,omitempty"`
+	Exec           *Exec       `json:"exec,omitempty"`
+	Annotations    KeyValueArr `json:"annotations,omitempty"`
+	DelAnnotations []string    `json:"delAnnotations,omitempty"`
+	Parameters     KeyValueArr `json:"parameters,omitempty"`
+	Limits         *Limits     `json:"limits,omitempty"`
+	Error          string      `json:"error,omitempty"`
+	Code           int         `json:"code,omitempty"`
+	Publish        *bool       `json:"publish,omitempty"`
+	Updated        int64       `json:"updated,omitempty"`
 }
 
 type Exec struct {
