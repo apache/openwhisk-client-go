@@ -19,6 +19,14 @@
 
 # Apache OpenWhisk Client Go
 
+## 1.1.0
+  + Add DelAnnotations field to support del annotation (#137)
+  + Bump up go version to 1.13.14 for travis (#138)
+  + Add `updated` field on package, rule, and trigger entity (#135)
+  + Add updated field on Action struct (#129)
+  + Parse an action's application error (#133)
+  + Support alt. namespace resource uuid as tenant id to API gateway service (#130)
+
 ## 1.0.0
   + Handle err return from url.Parse in GetUrlBase (#123)
   + Add dynamic column sizing to wsk activation list command (#120)
