@@ -216,14 +216,12 @@ func (s *ActivationService) Get(activationID string) (*Activation, *http.Respons
 		return nil, resp, err
 	}
 
-	if a.Success == false {
-		a.StatusCode = GetStatusCodeForErrorMessage(a.Status)
-	}
+	a.StatusCode = GetStatusCodeForMessage(a.Status)
 
 	return a, resp, nil
 }
 
-func GetStatusCodeForErrorMessage(msg string) (int) {
+func GetStatusCodeForMessage(msg string) (int) {
 	var code int
 
 	switch msg {
@@ -233,6 +231,8 @@ func GetStatusCodeForErrorMessage(msg string) (int) {
 		code = 2
 	case "whisk internal error":
 		code = 3
+	default:
+		code = 0
 	}
 
 	return code
