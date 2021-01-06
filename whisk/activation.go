@@ -221,7 +221,7 @@ func (s *ActivationService) Get(activationID string) (*Activation, *http.Respons
 	return a, resp, nil
 }
 
-func GetStatusCodeForMessage(msg string) (int) {
+func GetStatusCodeForMessage(msg string) int {
 	var code int
 
 	switch msg {
