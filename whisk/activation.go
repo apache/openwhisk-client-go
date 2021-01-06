@@ -216,7 +216,26 @@ func (s *ActivationService) Get(activationID string) (*Activation, *http.Respons
 		return nil, resp, err
 	}
 
+	a.StatusCode = GetStatusCodeForMessage(a.Status)
+
 	return a, resp, nil
+}
+
+func GetStatusCodeForMessage(msg string) int {
+	var code int
+
+	switch msg {
+	case "application error":
+		code = 1
+	case "action developer error":
+		code = 2
+	case "whisk internal error":
+		code = 3
+	default:
+		code = 0
+	}
+
+	return code
 }
 
 func (s *ActivationService) Logs(activationID string) (*Activation, *http.Response, error) {
