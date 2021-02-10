@@ -181,8 +181,12 @@ func TestParseApplicationError(t *testing.T) {
 		"error": "Another error string",
 	}
 
+    // Note: since the client implementation uses a Go map,
+    // the entry order of strings concatenated is not preserved
 	errStr := getApplicationErrorMessage(appErr1)
-	assert.Equal(t, "An error string; An error message", errStr)
+	assert.Contains(t, errStr, "An error string")
+	assert.Contains(t, errStr, "An error message")
+
 
 	errStr = getApplicationErrorMessage(appErr2)
 	assert.Equal(t, "Another error string", errStr)

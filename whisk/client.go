@@ -674,6 +674,7 @@ func getApplicationErrorMessage(errResp interface{}) string {
 				Debug(DbgInfo, "Application failure error json: %+v\n", errObj)
 
 				// Concatenate all string field values into a single error string
+				// Note: entry order of strings from map are not preserved.
 				msgSeparator := ""
 				for _, val := range errObj {
 					valStr, valStrOk := val.(string)
