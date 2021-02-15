@@ -21,14 +21,14 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Build Status](https://travis-ci.com/apache/openwhisk-client-go.svg?branch=master)](https://travis-ci.com/apache/openwhisk-client-go)
 
-This project `openwhisk-client-go` is a Go client library to access Openwhisk API.
+This project `openwhisk-client-go` is a Go client library to access the Openwhisk API.
 
 
 ### Prerequisites
 
-You need to install the following package in order to run this Go client library:
-- [Go](https://golang.org/doc/install)
-- [govendor](https://github.com/kardianos/govendor)
+The Openwhisk Go Client library requires you to [Download and install GoLang](https://golang.org/dl/) onto your local machine.
+
+> **Note** Go version 1.15 or higher is recommended
 
 Make sure you select the package that fits your local environment, and [set the GOPATH environment variable](https://github.com/golang/go/wiki/SettingGOPATH).
 
@@ -46,7 +46,6 @@ Open a terminal, and run the following commands to run the unit tests:
 
 ```
 $ cd $GOPATH/src/github.com/apache/openwhisk-client-go
-$ govendor sync
 $ go test -v ./... -tags=unit
 ```
 
