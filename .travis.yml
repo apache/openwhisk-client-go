@@ -37,9 +37,8 @@ notifications:
 
 before_install:
   - cd $TRAVIS_BUILD_DIR
-  - GO_FILES=$(find . -iname '*.go' -type f | grep -v /vendor/)
+  - GO_FILES=$(find . -iname '*.go' -type f)
   - test -z "$(gofmt -s -l $(echo $GO_FILES))"
-  #- pip install --upgrade pip setuptools
   - pip install --user --upgrade pip setuptools
   - ./tools/travis/setup.sh
 
