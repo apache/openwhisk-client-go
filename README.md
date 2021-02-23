@@ -21,55 +21,81 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Build Status](https://travis-ci.com/apache/openwhisk-client-go.svg?branch=master)](https://travis-ci.com/apache/openwhisk-client-go)
 
-This project `openwhisk-client-go` is a Go client library to access Openwhisk API.
+This project `openwhisk-client-go` is a Go client library to access the Openwhisk API.
 
+---
+
+## Building the project
 
 ### Prerequisites
 
-You need to install the following package in order to run this Go client library:
-- [Go](https://golang.org/doc/install)
-- [govendor](https://github.com/kardianos/govendor)
+The Openwhisk Go Client library requires you to [Download and install GoLang](https://golang.org/dl/) onto your local machine.
+
+> **Note** Go version 1.15 or higher is recommended
 
 Make sure you select the package that fits your local environment, and [set the GOPATH environment variable](https://github.com/golang/go/wiki/SettingGOPATH).
 
+### Download the source code from GitHub
 
-### Installation
+As the code is managed using GitHub, it is easiest to retrieve the code using the `git clone` command.
 
-After you download the source code either from the Github or the release page of OpenWhisk, you should have a directory named
-_openwhisk-client-go_ to host all the source code. Please copy this root directory _openwhisk-client-go_
-into the directory $GOPATH/src/github.com/apache.
+If you just want to build the code and do not intend to be a Contributor, you can clone the latest code from the Apache repository:
 
+```sh
+git clone git@github.com:apache/openwhisk-client-go
+```
 
-### Test
+You can also specify a release (tag), if you do not want the latest code, by using the `--branch <tag>` flag. For example, you can clone the source code for the tagged 1.1.0 [release](https://github.com/apache/openwhisk-client-go/releases)
 
-Open a terminal, and run the following commands to run the unit tests:
+```sh
+git clone --branch 1.1.0 git@github.com:apache/openwhisk-client-go
+```
+
+You can also pull the code from a fork of the repository. If you intend to become a Contributor to the project, read the section [Contributing to the project](#contributing-to-the-project) below on how to setup a fork.
+
+### Building using `go build`
+
+Change into the cloned project directory and use the following command to build all packages:
+
+```sh
+$ go build -v ./...
+```
+
+or simply build just the whisk commands:
+
+```sh
+$ go build -v ./whisk
+```
+
+> **Note**: There is no `main` function in this project as the `./whish` packages are treated together as a client library.
+
+### Testing using `go test`
+
+Open a terminal, change into the project directory and use the following command to run the unit tests:
 
 ```
-$ cd $GOPATH/src/github.com/apache/openwhisk-client-go
-$ govendor sync
 $ go test -v ./... -tags=unit
 ```
 
-You should see all the unit tests passed. If not, please [log an issue](https://github.com/apache/openwhisk-client-go/issues) for us.
+You should see all the unit tests passed; if not, please [log an issue](https://github.com/apache/openwhisk-client-go/issues) for us.
 
+---
 
-### Configuration
+## Configuration
 
 This Go client library is used to access the OpenWhisk API, so please make sure you have an OpenWhisk service running somewhere
 available for you to run this library.
 
-We use a configuration file called _wskprop_ to specify all the parameters necessary for this Go client library to access the OpenWhisk
-services. Make sure you create or edit the file _~/.wskprops_, and add the mandatory parameters APIHOST, APIVERSION, NAMESPACE and AUTH.
+We use a configuration file called _wskprop_ to specify all the parameters necessary for this Go client library to access the OpenWhisk services. Make sure you create or edit the file _~/.wskprops_, and add the mandatory parameters APIHOST, APIVERSION, NAMESPACE and AUTH.
 
-The parameter APIHOST is the OpenWhisk API hostname (for example, openwhisk.ng.bluemix.net, 172.17.0.1, and so on).
-The parameter APIVERSION is the version of OpenWhisk API to be used to access the OpenWhisk resources.
-The parameter NAMESPACE is the OpenWhisk namespace used to specify the OpenWhisk resources about to be accessed.
-The parameter AUTH is the authentication key used to authenticate the incoming requests to the OpenWhisk services.
+- The parameter `APIHOST` is the OpenWhisk API hostname (for example, openwhisk.ng.bluemix.net, 172.17.0.1, and so on).
+- The parameter `APIVERSION` is the version of OpenWhisk API to be used to access the OpenWhisk resources.
+- The parameter `NAMESPACE` is the OpenWhisk namespace used to specify the OpenWhisk resources about to be accessed.
+- The parameter `AUTH` is the authentication key used to authenticate the incoming requests to the OpenWhisk services.
 
 For more information regarding the REST API of OpenWhisk, please refer to [OpenWhisk REST API](https://github.com/apache/openwhisk/blob/master/docs/rest_api.md).
 
-
-### Usage
+## Usage
 
 ```go
 import "github.com/apache/openwhisk-client-go/whisk"
@@ -109,13 +135,9 @@ config := &whisk.Config{
 client, err := whisk.Newclient(http.DefaultClient, config)
 ```
 
-
 ### Example
 
 You need to have an OpenWhisk service accessible, to run the following example.
-
-Please be advised that all the Go files you are about to create should be under the directory of $GOPATH or its subdirectories.
-For example, create the Go file named _openwhisk_client_go.go_ under a directory called $GOPATH/src/example to try the following code.
 
 ```go
 import (
@@ -152,15 +174,7 @@ func main() {
 Then build it with the go tool:
 
 ```
-$ cd $GOPATH/src/example
 $ go build
 ```
 
-The command above will build an executable named client in the directory alongside your source code. Execute it to see the the result:
-
-```
-$ ./openwhisk_client_go
-```
-
-If the openWhisk service is available and your configuration is correct, you should receive the status and the actions with
-the above example.
+If the openWhisk service is available and your configuration is correct, you should receive the status and the actions with the above example.
