@@ -74,7 +74,6 @@ $ ./openwhisk_client_go
 Open a terminal, change into the project directory and use the following command to run the unit tests:
 
 ```
-$ cd $GOPATH/src/github.com/apache/openwhisk-client-go
 $ go test -v ./... -tags=unit
 ```
 
