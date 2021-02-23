@@ -23,6 +23,9 @@
 
 This project `openwhisk-client-go` is a Go client library to access the Openwhisk API.
 
+---
+
+## Building the project
 
 ### Prerequisites
 
@@ -32,17 +35,51 @@ The Openwhisk Go Client library requires you to [Download and install GoLang](ht
 
 Make sure you select the package that fits your local environment, and [set the GOPATH environment variable](https://github.com/golang/go/wiki/SettingGOPATH).
 
+### GoLang setup
 
-### Installation
+The wskdeploy utility is a GoLang program so you will first need to [Download and install GoLang](https://golang.org/dl/) onto your local machine.
 
-After you download the source code either from the Github or the release page of OpenWhisk, you should have a directory named
-_openwhisk-client-go_ to host all the source code. Please copy this root directory _openwhisk-client-go_
-into the directory $GOPATH/src/github.com/apache.
+> **Note** Go version 1.15 or higher is recommended
 
+Make sure your `$GOPATH` is defined correctly in your environment. For detailed setup of your GoLang development environment, please read [How to Write Go Code](https://golang.org/doc/code.html).
 
-### Test
+### Download the source code from GitHub
 
-Open a terminal, and run the following commands to run the unit tests:
+As the code is managed using GitHub, it is easiest to retrieve the code using the `git clone` command.
+
+if you just want to build the code and do not intend to be a Contributor, you can clone the latest code from the Apache repository:
+
+```sh
+git clone git@github.com:apache/openwhisk-client-go
+```
+
+or you can specify a release (tag) if you do not want the latest code by using the `--branch <tag>` flag. For example, you can clone the source code for the tagged 1.1.0 [release](https://github.com/apache/openwhisk-client-go/releases)
+
+```sh
+git clone --branch 1.1.0 git@github.com:apache/openwhisk-client-go
+```
+
+You can also pull the code from a fork of the repository. If you intend to become a Contributor to the project, read the section [Contributing to the project](#contributing-to-the-project) below on how to setup a fork.
+
+### Building using `go build`
+
+Use the Go utility to build the project.
+
+Change into the cloned project directory and use `go build`:
+
+```sh
+$ go build
+```
+
+The command above will build an executable named client in the directory alongside your source code which can be executed:
+
+```
+$ ./openwhisk_client_go
+```
+
+### Testing using `go test`
+
+Open a terminal, change into the project directory and use the following command to run the unit tests:
 
 ```
 $ cd $GOPATH/src/github.com/apache/openwhisk-client-go
@@ -51,8 +88,9 @@ $ go test -v ./... -tags=unit
 
 You should see all the unit tests passed. If not, please [log an issue](https://github.com/apache/openwhisk-client-go/issues) for us.
 
+---
 
-### Configuration
+## Configuration
 
 This Go client library is used to access the OpenWhisk API, so please make sure you have an OpenWhisk service running somewhere
 available for you to run this library.
@@ -67,8 +105,7 @@ The parameter AUTH is the authentication key used to authenticate the incoming r
 
 For more information regarding the REST API of OpenWhisk, please refer to [OpenWhisk REST API](https://github.com/apache/openwhisk/blob/master/docs/rest_api.md).
 
-
-### Usage
+## Usage
 
 ```go
 import "github.com/apache/openwhisk-client-go/whisk"
@@ -108,13 +145,9 @@ config := &whisk.Config{
 client, err := whisk.Newclient(http.DefaultClient, config)
 ```
 
-
 ### Example
 
 You need to have an OpenWhisk service accessible, to run the following example.
-
-Please be advised that all the Go files you are about to create should be under the directory of $GOPATH or its subdirectories.
-For example, create the Go file named _openwhisk_client_go.go_ under a directory called $GOPATH/src/example to try the following code.
 
 ```go
 import (
@@ -151,15 +184,7 @@ func main() {
 Then build it with the go tool:
 
 ```
-$ cd $GOPATH/src/example
 $ go build
 ```
 
-The command above will build an executable named client in the directory alongside your source code. Execute it to see the the result:
-
-```
-$ ./openwhisk_client_go
-```
-
-If the openWhisk service is available and your configuration is correct, you should receive the status and the actions with
-the above example.
+If the openWhisk service is available and your configuration is correct, you should receive the status and the actions with the above example.
