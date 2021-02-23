@@ -35,25 +35,17 @@ The Openwhisk Go Client library requires you to [Download and install GoLang](ht
 
 Make sure you select the package that fits your local environment, and [set the GOPATH environment variable](https://github.com/golang/go/wiki/SettingGOPATH).
 
-### GoLang setup
-
-The wskdeploy utility is a GoLang program so you will first need to [Download and install GoLang](https://golang.org/dl/) onto your local machine.
-
-> **Note** Go version 1.15 or higher is recommended
-
-Make sure your `$GOPATH` is defined correctly in your environment. For detailed setup of your GoLang development environment, please read [How to Write Go Code](https://golang.org/doc/code.html).
-
 ### Download the source code from GitHub
 
 As the code is managed using GitHub, it is easiest to retrieve the code using the `git clone` command.
 
-if you just want to build the code and do not intend to be a Contributor, you can clone the latest code from the Apache repository:
+If you just want to build the code and do not intend to be a Contributor, you can clone the latest code from the Apache repository:
 
 ```sh
 git clone git@github.com:apache/openwhisk-client-go
 ```
 
-or you can specify a release (tag) if you do not want the latest code by using the `--branch <tag>` flag. For example, you can clone the source code for the tagged 1.1.0 [release](https://github.com/apache/openwhisk-client-go/releases)
+You can also specify a release (tag), if you do not want the latest code, by using the `--branch <tag>` flag. For example, you can clone the source code for the tagged 1.1.0 [release](https://github.com/apache/openwhisk-client-go/releases)
 
 ```sh
 git clone --branch 1.1.0 git@github.com:apache/openwhisk-client-go
