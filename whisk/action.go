@@ -20,10 +20,11 @@ package whisk
 import (
 	"errors"
 	"fmt"
-	"github.com/apache/openwhisk-client-go/wski18n"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/apache/openwhisk-client-go/wski18n"
 )
 
 type ActionService struct {

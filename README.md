@@ -55,19 +55,19 @@ You can also pull the code from a fork of the repository. If you intend to becom
 
 ### Building using `go build`
 
-Use the Go utility to build the project.
-
-Change into the cloned project directory and use `go build`:
+Change into the cloned project directory and use the following command to build all packages:
 
 ```sh
-$ go build
+$ go build -v ./...
 ```
 
-The command above will build an executable named client in the directory alongside your source code which can be executed:
+or simply build just the whisk commands:
 
+```sh
+$ go build -v ./whisk
 ```
-$ ./openwhisk_client_go
-```
+
+> **Note**: There is no `main` function in this project as the `./whish` packages are treated together as a client library.
 
 ### Testing using `go test`
 
@@ -77,7 +77,7 @@ Open a terminal, change into the project directory and use the following command
 $ go test -v ./... -tags=unit
 ```
 
-You should see all the unit tests passed. If not, please [log an issue](https://github.com/apache/openwhisk-client-go/issues) for us.
+You should see all the unit tests passed; if not, please [log an issue](https://github.com/apache/openwhisk-client-go/issues) for us.
 
 ---
 
@@ -86,13 +86,12 @@ You should see all the unit tests passed. If not, please [log an issue](https://
 This Go client library is used to access the OpenWhisk API, so please make sure you have an OpenWhisk service running somewhere
 available for you to run this library.
 
-We use a configuration file called _wskprop_ to specify all the parameters necessary for this Go client library to access the OpenWhisk
-services. Make sure you create or edit the file _~/.wskprops_, and add the mandatory parameters APIHOST, APIVERSION, NAMESPACE and AUTH.
+We use a configuration file called _wskprop_ to specify all the parameters necessary for this Go client library to access the OpenWhisk services. Make sure you create or edit the file _~/.wskprops_, and add the mandatory parameters APIHOST, APIVERSION, NAMESPACE and AUTH.
 
-The parameter APIHOST is the OpenWhisk API hostname (for example, openwhisk.ng.bluemix.net, 172.17.0.1, and so on).
-The parameter APIVERSION is the version of OpenWhisk API to be used to access the OpenWhisk resources.
-The parameter NAMESPACE is the OpenWhisk namespace used to specify the OpenWhisk resources about to be accessed.
-The parameter AUTH is the authentication key used to authenticate the incoming requests to the OpenWhisk services.
+- The parameter `APIHOST` is the OpenWhisk API hostname (for example, openwhisk.ng.bluemix.net, 172.17.0.1, and so on).
+- The parameter `APIVERSION` is the version of OpenWhisk API to be used to access the OpenWhisk resources.
+- The parameter `NAMESPACE` is the OpenWhisk namespace used to specify the OpenWhisk resources about to be accessed.
+- The parameter `AUTH` is the authentication key used to authenticate the incoming requests to the OpenWhisk services.
 
 For more information regarding the REST API of OpenWhisk, please refer to [OpenWhisk REST API](https://github.com/apache/openwhisk/blob/master/docs/rest_api.md).
 
