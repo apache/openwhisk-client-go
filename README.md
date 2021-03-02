@@ -88,7 +88,10 @@ available for you to run this library.
 
 We use a configuration file called _wskprop_ to specify all the parameters necessary for this Go client library to access the OpenWhisk services. Make sure you create or edit the file _~/.wskprops_, and add the mandatory parameters APIHOST, APIVERSION, NAMESPACE and AUTH.
 
-- The parameter `APIHOST` is the OpenWhisk API hostname (for example, openwhisk.ng.bluemix.net, 172.17.0.1, and so on).
+- The parameter `APIHOST` is the OpenWhisk API hostname.
+    - If you are using a local [quick start standalone](https://github.com/apache/openwhisk#quick-start), OpenWhisk services APIHOST will look like `http://localhost:3233`
+    - If you are using IBM cloud functions as your provider, APIHOST will look like `<region>.functions.cloud.ibm.com` where region can be `us-east`, `us-south` or any additional [regions](https://cloud.ibm.com/docs/openwhisk?topic=openwhisk-cloudfunctions_regions)
+
 - The parameter `APIVERSION` is the version of OpenWhisk API to be used to access the OpenWhisk resources.
 - The parameter `NAMESPACE` is the OpenWhisk namespace used to specify the OpenWhisk resources about to be accessed.
 - The parameter `AUTH` is the authentication key used to authenticate the incoming requests to the OpenWhisk services.
@@ -101,23 +104,23 @@ For more information regarding the REST API of OpenWhisk, please refer to [OpenW
 import "github.com/apache/openwhisk-client-go/whisk"
 ```
 
-Construct a new whisk client, then use various services to access different parts of the whisk api.  For example to get the `hello` action:
+Construct a new whisk client, then use various services to access different parts of the whisk api.  For example to get the `hello` package actions:
 
 ```go
 client, _ := whisk.NewClient(http.DefaultClient, nil)
-action, resp, err := client.Actions.List("hello")
+actions, resp, err := client.Actions.List("hello", nil)
 ```
 
-Some API methods have optional parameters that can be passed. For example, to list the first 30 actions, after the 30th action:
+Some API methods have optional parameters that can be passed. For example, to list the first 10 actions of the `hello` package:
 ```go
 client, _ := whisk.NewClient(http.DefaultClient, nil)
 
 options := &whisk.ActionListOptions{
-  Limit: 30,
-  Skip: 30,
+  Limit: 10,
+  Skip: 0,
 }
 
-actions, resp, err := client.Actions.List(options)
+actions, resp, err := client.Actions.List("hello", options)
 ```
 
 By default, this Go client library is automatically configured by the configuration file _wskprop_. The parameters of APIHOST, APIVERSION,
@@ -127,22 +130,25 @@ In addition, it can also be configured by passing in a `*whisk.Config` object as
 
 ```go
 config := &whisk.Config{
-  Host: "openwhisk.ng.bluemix.net",
-  Version: "v1"
-  Namespace: "_",
-  AuthKey: "aaaaa-bbbbb-ccccc-ddddd-eeeee"
+  Host: "<APIHOST>",
+  Version: "<APIVERSION>",
+  Namespace: "<NAMESPACE>",
+  AuthToken: "<AUTH>",
 }
 client, err := whisk.Newclient(http.DefaultClient, config)
 ```
 
 ### Example
 
-You need to have an OpenWhisk service accessible, to run the following example.
+You need to have an OpenWhisk service accessible, to run the following [example](https://github.com/apache/openwhisk-client-go/blob/master/example/example_list_actions.go).
 
 ```go
+package main
+
 import (
+  "os"
+  "fmt"
   "net/http"
-  "net/url"
 
   "github.com/apache/openwhisk-client-go/whisk"
 )
@@ -155,26 +161,60 @@ func main() {
   }
 
   options := &whisk.ActionListOptions{
-    Limit: 30,
-    Skip: 30,
+    Limit: 10,
+    Skip: 0,
   }
 
-  actions, resp, err := client.Actions.List(options)
+  actions, resp, err := client.Actions.List("", options)
   if err != nil {
     fmt.Println(err)
     os.Exit(-1)
   }
 
   fmt.Println("Returned with status: ", resp.Status)
-  fmt.Println("Returned actions: \n%+v", actions)
+  fmt.Printf("Returned actions: \n%+v", actions)
 
 }
 ```
 
-Then build it with the go tool:
+Then run it with the go tool:
 
 ```
-$ go build
+$ cd example
+$ go run example_list_actions.go
 ```
 
 If the openWhisk service is available and your configuration is correct, you should receive the status and the actions with the above example.
+
+---
+
+## Contributing to the project
+
+### Git repository setup
+
+1. [Fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) the Apache repository
+
+    If you intend to contribute code, you will want to fork the `apache/openwhisk-client-go` repository into your github account and use that as the source for your clone.
+
+2. Clone the repository from your fork:
+
+    ```sh
+    git clone git@github.com:${GITHUB_ACCOUNT_USERNAME}/openwhisk-client-go.git
+    ```
+
+3. Add the Apache repository as a remote with the `upstream` alias:
+
+    ```sh
+    git remote add upstream git@github.com:apache/openwhisk-client-go
+    ```
+
+    You can now use `git push` to push local `commit` changes to your `origin` repository and submit pull requests to the `upstream` project repository.
+
+4. Optionally, prevent accidental pushes to `upstream` using this command:
+
+    ```sh
+    git remote set-url --push upstream no_push
+    ```
+
+> Be sure to [Sync your fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork) before starting any contributions to keep it up-to-date with the upstream repository.
+
