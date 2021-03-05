@@ -13,5 +13,7 @@ require (
 	github.com/onsi/ginkgo v1.15.0 // indirect
 	github.com/onsi/gomega v1.10.5 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/stretchr/testify v1.3.1-0.20190109162356-363ebb24d041
+	github.com/stretchr/objx v0.3.0 // indirect
+	github.com/stretchr/testify v1.6.1
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
