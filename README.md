@@ -73,7 +73,7 @@ $ go build -v ./whisk
 
 Open a terminal, change into the project directory and use the following command to run the unit tests:
 
-```
+```sh
 $ go test -v ./... -tags=unit
 ```
 
@@ -177,7 +177,7 @@ func main() {
 }
 ```
 
-Then run it with the go tool:
+Then run it with the `go` tool:
 
 ```
 $ cd example
@@ -218,3 +218,30 @@ If the openWhisk service is available and your configuration is correct, you sho
 
 > Be sure to [Sync your fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork) before starting any contributions to keep it up-to-date with the upstream repository.
 
+### Adding new dependencies
+
+Please use `go get` to add new dependencies to the `go.mod` file:
+
+```sh
+go get -u github.com/project/libname@v1.2.0
+```
+
+> Please avoid using commit hashes for referencing non-OpenWhisk libraries.
+
+### Updating dependency versions
+
+Although you might be tempted to edit the go.mod file directly, please use the recommended method of using the `go get` command:
+
+```sh
+go get -u github.com/project/libname  # Using "latest" version
+go get -u github.com/project/libname@v1.1.0 # Using tagged version
+go get -u github.com/project/libname@aee5cab1c  # Using a commit hash
+```
+
+### Updating Go version
+
+Although you could edit the version directly in the go.mod file, it is better to use the `go edit` command:
+
+```sh
+go mod edit -go=1.15
+```
