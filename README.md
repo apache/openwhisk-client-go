@@ -67,7 +67,7 @@ or simply build just the whisk commands:
 $ go build -v ./whisk
 ```
 
-> **Note**: There is no `main` function in this project as the `./whish` packages are treated together as a client library.
+> **Note**: There is no `main` function in this project as the `./whisk` packages are treated together as a client library.
 
 ### Testing using `go test`
 
