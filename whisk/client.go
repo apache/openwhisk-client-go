@@ -116,8 +116,8 @@ var DefaultObfuscateArr = []ObfuscateSet{
 // NewClient creates a new whisk client with the provided http client and whisk configuration.
 //
 // A new http.Transport will be created when client cert or TLS insecure options are set.
-// If one use custom tranport and want to keep it intact, please opt out TLS related fields
-// in configInput and construct TLS conguration in the custom transport.
+// If one use custom transport and want to keep it intact, please opt out TLS related fields
+// in configInput and construct TLS configuration in the custom transport.
 func NewClient(httpClient *http.Client, configInput *Config) (*Client, error) {
 
 	var config *Config

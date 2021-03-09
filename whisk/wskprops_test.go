@@ -215,7 +215,7 @@ func TestGetPropsFromWhiskProperties(t *testing.T) {
 
 	DeleteFile(OPENWHISK_PROPERTIES)
 	DeleteFile(TEST_AUTH_FILE_NAME)
-	// Make sure the "non-existant" test.auth key file really does not exist
+	// Make sure the "non-existent" test.auth key file really does not exist
 	DeleteFile(NON_EXISTING_TEST_FILE)
 
 	// Variant 3 ------------------------------------------------------------------
