@@ -61,7 +61,7 @@ func IsDebug() bool {
 
 /* Function for tracing debug level messages to stdout
    Output format:
-   [file-or-function-name]:line-#:[DebugLevel] The formated message without any appended \n
+   [file-or-function-name]:line-#:[DebugLevel] The formatted message without any appended \n
 */
 func Debug(dl DebugLevel, msgFormat string, args ...interface{}) {
 	if isDebug {

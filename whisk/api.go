@@ -347,7 +347,7 @@ func (s *ApiService) List(apiListOptions *ApiListRequestOptions) (*ApiListRespon
 
 	err = validateApiListResponse(apiArray)
 	if err != nil {
-		Debug(DbgError, "Not a valid ApiListReponse object\n")
+		Debug(DbgError, "Not a valid ApiListResponse object\n")
 		return nil, resp, err
 	}
 
