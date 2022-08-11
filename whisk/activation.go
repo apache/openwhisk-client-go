@@ -61,7 +61,7 @@ type Response struct {
 	Result     *Result `json:"result,omitempty"`
 }
 
-type Result map[string]interface{}
+type Result interface{}
 
 type ActivationListOptions struct {
 	Name  string `url:"name,omitempty"`
