@@ -60,10 +60,10 @@ type ActivationFilteredRow struct {
 }
 
 type Response struct {
-	Status     string  `json:"status"`
-	StatusCode int     `json:"statusCode"`
-	Success    bool    `json:"success"`
-	Result     *Result `json:"result,omitempty"`
+	Status     string `json:"status"`
+	StatusCode int    `json:"statusCode"`
+	Success    bool   `json:"success"`
+	Result     Result `json:"result,omitempty"`
 }
 
 type Result interface{}
