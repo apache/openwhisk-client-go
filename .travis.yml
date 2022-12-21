@@ -51,6 +51,6 @@ script:
   - ./tools/travis/build.sh
   - export PATH=$PATH:$TRAVIS_BUILD_DIR;
   - make test
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
-      ./tools/travis/test_openwhisk.sh;
-    fi
+#  - if [ "$TRAVIS_OS_NAME" == "linux" ] ; then
+#      ./tools/travis/test_openwhisk.sh;
+#    fi
