@@ -44,6 +44,7 @@ type Action struct {
 	Code           int         `json:"code,omitempty"`
 	Publish        *bool       `json:"publish,omitempty"`
 	Updated        int64       `json:"updated,omitempty"`
+	Env            KeyValueArr `json:"env,omitempty"`
 }
 
 type Exec struct {
@@ -92,7 +93,7 @@ func (action Action) ToHeaderString() string {
 }
 
 // ToSummaryRowString() returns a compound string of required parameters for printing
-//   from CLI command `wsk action list`.
+// from CLI command `wsk action list`.
 // ***Method of type Sortable***
 func (action Action) ToSummaryRowString() string {
 	var kind string
