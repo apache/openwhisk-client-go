@@ -17,11 +17,11 @@
 
 deps:
 	@echo "Installing dependencies"
-	go get -d -t ./...
+	go get -t ./...
 
 updatedeps:
 	@echo "Updating all dependencies"
-	@go get -d -u -f -fix -t ./...
+	@go get -u -t ./...
 
 test: deps
 	@echo "Testing"
