@@ -31,9 +31,7 @@ This project `openwhisk-client-go` is a Go client library to access the Openwhis
 
 The Openwhisk Go Client library requires you to [Download and install GoLang](https://golang.org/dl/) onto your local machine.
 
-> **Note** Go version 1.15 or higher is recommended
-
-Make sure you select the package that fits your local environment, and [set the GOPATH environment variable](https://github.com/golang/go/wiki/SettingGOPATH).
+Make sure you select the package that fits your local environment, and [set the GOPATH environment variable](https://go.dev/wiki/SettingGOPATH).
 
 ### Download the source code from GitHub
 
@@ -243,5 +241,5 @@ go get -u github.com/project/libname@aee5cab1c  # Using a commit hash
 Although you could edit the version directly in the go.mod file, it is better to use the `go edit` command:
 
 ```sh
-go mod edit -go=1.15
+go mod edit -go=1.NN
 ```
