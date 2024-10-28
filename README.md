@@ -19,7 +19,7 @@
 
 # Openwhisk Client Go
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Build Status](https://travis-ci.com/apache/openwhisk-client-go.svg?branch=master)](https://travis-ci.com/github/apache/openwhisk-client-go)
+[![Continuous Integration](https://github.com/apache/openwhisk-client-go/actions/workflows/ci.yaml/badge.svg)](https://github.com/apache/openwhisk-client-go/actions/workflows/ci.yaml)
 
 This project `openwhisk-client-go` is a Go client library to access the Openwhisk API.
 
